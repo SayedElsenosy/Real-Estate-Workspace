@@ -9,15 +9,17 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "node scripts/migrate.mjs",
     "test:rls": "node scripts/test-rls.mjs",
-    "test:foundation": "npm run typecheck && npm run test:rls && npm run test:inventory-rls && npm run build",
-    "test:inventory-rls": "node scripts/test-inventory-rls.mjs"
+    "test:foundation": "npm run typecheck && npm run test:rls && npm run test:inventory-rls && npm run test:booking-concurrency && npm run build",
+    "test:inventory-rls": "node scripts/test-inventory-rls.mjs",
+    "test:booking-concurrency": "node --import tsx scripts/test-booking-concurrency.mjs"
   },
   "dependencies": {
     "next": "16.4.1",
     "react": "19.2.6",
     "react-dom": "19.2.6",
     "drizzle-orm": "0.45.2",
-    "postgres": "^3.4.7"
+    "postgres": "^3.4.7",
+    "jose": "^6.1.0"
   },
   "devDependencies": {
     "@types/node": "^22.16.0",
@@ -26,6 +28,7 @@
     "@tailwindcss/postcss": "^4.1.16",
     "drizzle-kit": "^0.31.0",
     "tailwindcss": "^4.1.16",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "tsx": "^4.20.6"
   }
 }

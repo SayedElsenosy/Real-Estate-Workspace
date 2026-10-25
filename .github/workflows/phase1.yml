@@ -1,4 +1,4 @@
-name: Phases 1-2 Foundation & Inventory CI
+name: Phases 1-3 Foundation Inventory & Atomic Booking CI
 on:
   push:
     branches: [main]
@@ -31,5 +31,6 @@ jobs:
       - run: npm run db:migrate
       - run: npm run test:rls
       - run: npm run test:inventory-rls
+      - run: npm run test:booking-concurrency
       - run: npm run typecheck
       - run: npm run build

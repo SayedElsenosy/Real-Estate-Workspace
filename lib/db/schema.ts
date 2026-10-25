@@ -105,3 +105,29 @@ export const units = pgTable("units", {
   check("units_svg_coordinates_object_check",
     sql`${table.svgCoordinates} IS NULL OR jsonb_typeof(${table.svgCoordinates}) = 'object'`),
 ]);
+
+export const bookingStatus = pgEnum("booking_status", ["PENDING","CONFIRMED","CANCELLED"]);
+
+export const bookings = pgTable("bookings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.tenantId, { onDelete: "restrict" }),
+  unitId: uuid("unit_id").notNull(),
+  status: bookingStatus("status").notNull().default("PENDING"),
+  customerName: text("customer_name").notNull(),
+  customerPhone: text("customer_phone").notNull(),
+  bookingDate: timestamp("booking_date", { withTimezone: true }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+}, (table) => [
+  foreignKey({
+    name: "bookings_unit_tenant_fk",
+    columns: [table.tenantId, table.unitId],
+    foreignColumns: [units.tenantId, units.id],
+  }).onDelete("restrict"),
+  index("bookings_tenant_unit_status_idx").on(table.tenantId, table.unitId, table.status),
+  uniqueIndex("bookings_one_active_per_unit_idx").on(table.tenantId, table.unitId)
+    .where(sql`${table.status} IN ('PENDING','CONFIRMED')`),
+  check("bookings_customer_name_check", sql`length(btrim(${table.customerName})) BETWEEN 1 AND 200`),
+  check("bookings_customer_phone_check", sql`length(btrim(${table.customerPhone})) BETWEEN 6 AND 30`),
+  check("bookings_expires_after_creation_check",
+    sql`${table.expiresAt} IS NULL OR ${table.expiresAt} > ${table.bookingDate}`),
+]);

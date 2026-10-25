@@ -24,3 +24,8 @@ CREATE UNIQUE INDEX receipts_single_settlement_per_installment_idx ON public.rec
  WHERE installment_id IS NOT NULL AND cheque_clearance_status <> 'BOUNCED';
 CREATE INDEX IF NOT EXISTS receipts_cheque_queue_idx ON public.receipts(tenant_id,cheque_clearance_status,created_at) WHERE method='CHEQUE';
 GRANT USAGE ON TYPE public.cheque_clearance_status_enum TO tenant_runtime;
+
+DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='receipt_bounce_audit_check') THEN
+ ALTER TABLE public.receipts ADD CONSTRAINT receipt_bounce_audit_check
+ CHECK (cheque_clearance_status IS DISTINCT FROM 'BOUNCED' OR (method='CHEQUE' AND bounced_reason IS NOT NULL AND length(btrim(bounced_reason))>0 AND bounced_at IS NOT NULL));
+END IF; END $$;

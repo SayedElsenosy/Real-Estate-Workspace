@@ -106,6 +106,7 @@ export async function recordPayment(
       installmentId:input.installmentId,
       amount:amount.toFixed(2),
       method:input.method,
+      chequeClearanceStatus:input.method==="CHEQUE"?"PENDING":null,
       referenceNumber:input.referenceNumber?.trim() || null,
       receiptDate:input.receiptDate,
     }).returning({

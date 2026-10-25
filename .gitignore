@@ -8,3 +8,7 @@ dist/
 *.tsbuildinfo
 .DS_Store
 coverage/
+
+# Local browser test output
+test-results/
+playwright-report/

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Building2, Blocks, CalendarCheck2, FileText, Wallet, LogOut, Layers3, ChevronLeft, ShieldCheck, UsersRound, Settings2 } from "lucide-react";
+import { LayoutDashboard, Building2, Blocks, CalendarCheck2, FileText, Wallet, LogOut, Layers3, ChevronLeft, ShieldCheck, UsersRound, Settings2, ChartNoAxesCombined } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 const links=[
@@ -12,6 +12,7 @@ const links=[
  {href:"/customers",title:"العملاء",icon:UsersRound},
  {href:"/contracts",title:"العقود",icon:FileText},
  {href:"/treasury",title:"الخزينة",icon:Wallet},
+ {href:"/reports/aging",title:"أعمار المديونيات",icon:ChartNoAxesCombined},
  {href:"/settings/contracts",title:"قوالب Word",icon:Settings2},
 ];
 const roles:Record<string,string>={COMPANY_ADMIN:"مدير الشركة",SALES:"المبيعات",ACCOUNTANT:"المحاسبة"};

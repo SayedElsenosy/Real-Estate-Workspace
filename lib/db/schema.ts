@@ -184,4 +184,38 @@ export const installments = pgTable("installments", {
   index("installments_tenant_contract_idx").on(table.tenantId,table.contractId),
   check("installments_sequence_positive",sql`${table.sequence} > 0`),
   check("installments_amount_positive",sql`${table.amount} > 0`),
+  unique("installments_tenant_contract_id_unique").on(table.tenantId,table.contractId,table.id),
+]);
+
+export const paymentMethod = pgEnum("payment_method", ["CASH","BANK_TRANSFER","CHEQUE"]);
+
+export const receipts = pgTable("receipts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.tenantId, {onDelete:"restrict"}),
+  contractId: uuid("contract_id").notNull(),
+  installmentId: uuid("installment_id"),
+  // Drizzle returns money as string. Never perform currency arithmetic with JS floats.
+  amount: numeric("amount", {precision:12,scale:2}).notNull(),
+  method: paymentMethod("method").notNull(),
+  referenceNumber: text("reference_number"),
+  receiptDate: date("receipt_date").notNull(),
+  createdAt: timestamp("created_at", {withTimezone:true}).notNull().defaultNow(),
+}, table=>[
+  foreignKey({name:"receipts_tenant_contract_fk",
+    columns:[table.tenantId,table.contractId],
+    foreignColumns:[contracts.tenantId,contracts.id],
+  }).onDelete("restrict"),
+  foreignKey({name:"receipts_tenant_contract_installment_fk",
+    columns:[table.tenantId,table.contractId,table.installmentId],
+    foreignColumns:[installments.tenantId,installments.contractId,installments.id],
+  }).onDelete("restrict"),
+  index("receipts_tenant_contract_date_idx").on(table.tenantId,table.contractId,table.receiptDate),
+  index("receipts_tenant_installment_idx").on(table.tenantId,table.installmentId),
+  uniqueIndex("receipts_single_settlement_per_installment_idx").on(table.tenantId,table.installmentId)
+    .where(sql`${table.installmentId} IS NOT NULL`),
+  uniqueIndex("receipts_tenant_method_reference_unique").on(table.tenantId,table.method,table.referenceNumber)
+    .where(sql`${table.method} <> 'CASH' AND ${table.referenceNumber} IS NOT NULL`),
+  check("receipts_amount_positive",sql`${table.amount} > 0`),
+  check("receipts_reference_required_check",
+    sql`${table.method} = 'CASH' OR (${table.referenceNumber} IS NOT NULL AND length(btrim(${table.referenceNumber})) > 0)`),
 ]);

@@ -58,7 +58,10 @@ export async function POST(request:Request) {
       return NextResponse.json({code:error.code,error:error.message},{status:error.httpStatus,headers:noStore});
     if(error instanceof PaymentPlanError)
       return NextResponse.json({code:"INVALID_AMOUNT",error:error.message},{status:422,headers:noStore});
-    if(typeof error==="object" && error!==null && "code" in error && error.code==="23505")
+    if (typeof error==="object" && error!==null && ("cause" in error || "code" in error) &&
+        ((("code" in error) && error.code==="23505") ||
+        (("cause" in error) && typeof error.cause==="object" && error.cause!==null &&
+          "code" in error.cause && error.cause.code==="23505")))
       return NextResponse.json({code:"DUPLICATE_RECEIPT",error:"المقبوض مسجل بالفعل"},{status:409,headers:noStore});
     console.error("Receipt transaction failed",error instanceof Error?error.name:"database-error");
     return NextResponse.json({error:"تعذر تسجيل المقبوض"},{status:500,headers:noStore});

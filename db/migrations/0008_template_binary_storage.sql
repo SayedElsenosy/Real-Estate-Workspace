@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS public.contract_template_files (template_id uuid PRIMARY KEY, tenant_id uuid NOT NULL, content bytea NOT NULL, size_bytes integer NOT NULL CHECK(size_bytes BETWEEN 1 AND 5242880), CONSTRAINT template_file_scope_fk FOREIGN KEY(tenant_id,template_id) REFERENCES public.contract_templates(tenant_id,id) ON DELETE CASCADE);
 ALTER TABLE public.contract_template_files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contract_template_files FORCE ROW LEVEL SECURITY;
-DO $ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='contract_template_files' AND policyname='tenant_files') THEN CREATE POLICY tenant_files ON public.contract_template_files FOR ALL TO tenant_runtime USING (tenant_id=(SELECT app.current_tenant_id())) WITH CHECK (tenant_id=(SELECT app.current_tenant_id())); END IF; END $;
-DO $ DECLARE who text:=current_user; BEGIN IF NOT EXISTS(SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='contract_template_files' AND policyname='migrations_admin') THEN EXECUTE format('CREATE POLICY migrations_admin ON public.contract_template_files FOR ALL TO %I USING(true) WITH CHECK(true)',who); END IF; END $;
+DROP POLICY IF EXISTS tenant_files ON public.contract_template_files;
+CREATE POLICY tenant_files ON public.contract_template_files FOR ALL TO tenant_runtime USING(tenant_id=(SELECT app.current_tenant_id())) WITH CHECK(tenant_id=(SELECT app.current_tenant_id()));
+
 GRANT SELECT,INSERT,UPDATE,DELETE ON public.contract_template_files TO tenant_runtime;

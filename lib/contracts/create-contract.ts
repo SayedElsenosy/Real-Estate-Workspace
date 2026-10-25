@@ -89,6 +89,8 @@ export async function createSignedContract(
       status: installments.status, isDownPayment: installments.isDownPayment,
     });
 
-    return { contract, installments: rows };
+    await tx.update(units).set({status:"SOLD"}).where(and(eq(units.tenantId,input.tenantId),eq(units.id,booking.unitId)));
+
+    return { contract, installments: rows,unitStatus:"SOLD" as const };
   });
 }

@@ -210,6 +210,7 @@ export const installments = pgTable("installments", {
 
 export const paymentMethod = pgEnum("payment_method", ["CASH","BANK_TRANSFER","CHEQUE"]);
 
+export const chequeClearanceStatusEnum=pgEnum("cheque_clearance_status_enum",["PENDING","CLEARED","BOUNCED"]);
 export const receipts = pgTable("receipts", {
   id: uuid("id").primaryKey().defaultRandom(),
   tenantId: uuid("tenant_id").notNull().references(() => tenants.tenantId, {onDelete:"restrict"}),
@@ -219,7 +220,9 @@ export const receipts = pgTable("receipts", {
   amount: numeric("amount", {precision:12,scale:2}).notNull(),
   method: paymentMethod("method").notNull(),
   referenceNumber: text("reference_number"),
-  chequeClearanceStatus:text("cheque_clearance_status"),
+  chequeClearanceStatus:chequeClearanceStatusEnum("cheque_clearance_status").notNull().default("CLEARED"),
+  bouncedReason:text("bounced_reason"),
+  bouncedAt:timestamp("bounced_at",{withTimezone:true}),
   receiptDate: date("receipt_date").notNull(),
   createdAt: timestamp("created_at", {withTimezone:true}).notNull().defaultNow(),
 }, table=>[
@@ -234,7 +237,7 @@ export const receipts = pgTable("receipts", {
   index("receipts_tenant_contract_date_idx").on(table.tenantId,table.contractId,table.receiptDate),
   index("receipts_tenant_installment_idx").on(table.tenantId,table.installmentId),
   uniqueIndex("receipts_single_settlement_per_installment_idx").on(table.tenantId,table.installmentId)
-    .where(sql`${table.installmentId} IS NOT NULL`),
+    .where(sql`${table.installmentId} IS NOT NULL AND ${table.chequeClearanceStatus} <> 'BOUNCED'`),
   uniqueIndex("receipts_tenant_method_reference_unique").on(table.tenantId,table.method,table.referenceNumber)
     .where(sql`${table.method} <> 'CASH' AND ${table.referenceNumber} IS NOT NULL`),
   check("receipts_amount_positive",sql`${table.amount} > 0`),

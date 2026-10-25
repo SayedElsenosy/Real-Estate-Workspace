@@ -86,7 +86,7 @@ export async function recordPayment(
     const [aggregate] = await tx.select({
       collected: sql<string>`COALESCE(SUM(${receipts.amount}), 0)::text`,
     }).from(receipts).where(and(
-      eq(receipts.tenantId,input.tenantId),eq(receipts.contractId,input.contractId),
+      eq(receipts.tenantId,input.tenantId),eq(receipts.contractId,input.contractId),sql`${receipts.chequeClearanceStatus} <> 'BOUNCED'`,
     ));
     const alreadyCollected = new Decimal(aggregate.collected);
     if (alreadyCollected.plus(amount).gt(parsePositiveMoney(contract.total)))

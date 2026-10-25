@@ -45,7 +45,7 @@ try {
     VALUES(${unitA},${a},${buildingA},'101','98.50','3500000.25')`;
 
   const input={tenantId:a,externalAuthId:subject,unitId:unitA,
-    customerName:"Concurrency Test Buyer",customerPhone:"01000000000"};
+    newCustomer:{fullName:"Concurrency Test Buyer",phonePrimary:"01000000000"}};
   // Explicitly exercise the SAME TypeScript service imported by the API route.
   const outcomes = await Promise.all(Array.from({length:10}, async(_,i)=>{
     try { return {ok:true,index:i,result:await createConfirmedBooking(db,input)}; }
@@ -79,6 +79,7 @@ try {
   if(fixturesCreated){
     // Only remove known test fixture rows from this disposable database.
     await admin`DELETE FROM public.bookings WHERE tenant_id=${a}`;
+    await admin`DELETE FROM public.customers WHERE tenant_id=${a}`;
     await admin`DELETE FROM public.units WHERE tenant_id=${a}`;
     await admin`DELETE FROM public.buildings WHERE tenant_id=${a}`;
     await admin`DELETE FROM public.phases WHERE tenant_id=${a}`;

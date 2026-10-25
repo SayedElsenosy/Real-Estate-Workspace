@@ -176,8 +176,10 @@ test("cheque issued against installment bounces and restores OVERDUE",async({pag
  await page.getByRole("button",{name:"إنشاء العقد"}).click();
  await expect(page).toHaveURL(/\/contracts$/);
  await page.getByRole("row").filter({hasText:"عميل شيك مرتجع"}).getByRole("link").click();
- const contractUrl=page.url();
  const installment=page.getByTestId("installment-1");
+ await expect(installment).toBeVisible();
+ await expect(page).toHaveURL(/\/contracts\/[0-9a-f-]+$/);
+ const contractUrl=page.url();
  await installment.getByRole("button",{name:"تسجيل دفعة"}).click();
  await page.getByLabel("طريقة الدفع").selectOption("CHEQUE");
  await page.getByLabel("رقم المرجع").fill("CH-TEST-BOUNCE-11");

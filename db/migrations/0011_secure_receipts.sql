@@ -46,3 +46,26 @@ REVOKE UPDATE,DELETE ON public.receipts FROM tenant_runtime;
 GRANT SELECT,INSERT ON public.receipts TO tenant_runtime;
 REVOKE UPDATE,DELETE ON public.receipt_cheque_events FROM tenant_runtime;
 GRANT SELECT,INSERT ON public.receipt_cheque_events TO tenant_runtime;
+
+-- Active receipts require event-aware uniqueness; a bounced receipt may be replaced.
+DROP INDEX IF EXISTS public.receipts_single_settlement_per_installment_idx;
+CREATE OR REPLACE FUNCTION public.prevent_duplicate_active_installment_receipt() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+ IF NEW.installment_id IS NOT NULL THEN
+  PERFORM pg_advisory_xact_lock(hashtextextended(NEW.tenant_id::text||':'||NEW.installment_id::text,0));
+  IF EXISTS (
+   SELECT 1 FROM public.receipts r
+   LEFT JOIN public.receipt_cheque_events e ON e.tenant_id=r.tenant_id AND e.receipt_id=r.id
+   WHERE r.tenant_id=NEW.tenant_id AND r.installment_id=NEW.installment_id
+     AND COALESCE(e.new_status,r.cheque_clearance_status) IS DISTINCT FROM 'BOUNCED'::public.cheque_clearance_status_enum
+  ) THEN
+   RAISE EXCEPTION 'Installment already has a non-bounced receipt'
+    USING ERRCODE='23505', CONSTRAINT='receipts_active_installment_guard';
+  END IF;
+ END IF;
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS receipts_active_installment_guard ON public.receipts;
+CREATE TRIGGER receipts_active_installment_guard BEFORE INSERT ON public.receipts
+FOR EACH ROW EXECUTE FUNCTION public.prevent_duplicate_active_installment_receipt();

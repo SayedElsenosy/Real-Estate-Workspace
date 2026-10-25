@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDatabase } from "@/lib/db/client";
-import { verifyBookingIdentity } from "@/lib/auth/verify-booking-identity";
+import { verifyRequestIdentity } from "@/lib/auth/mock-session";
 import { ContractError, createSignedContract } from "@/lib/contracts/create-contract";
 import { PaymentPlanError } from "@/lib/contracts/generate-installments";
 
@@ -10,8 +10,8 @@ const DECIMAL = /^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/;
 const noStore = { "Cache-Control": "no-store" };
 
 export async function POST(request: Request) {
-  let identity: Awaited<ReturnType<typeof verifyBookingIdentity>>;
-  try { identity = await verifyBookingIdentity(request.headers.get("authorization")); }
+  let identity: Awaited<ReturnType<typeof verifyRequestIdentity>>;
+  try { identity = await verifyRequestIdentity(request); }
   catch { return NextResponse.json({error:"خدمة المصادقة غير مجهزة"},{status:503,headers:noStore}); }
   if (!identity) return NextResponse.json({error:"يلزم تسجيل دخول موثوق"},{status:401,headers:noStore});
   if (!request.headers.get("content-type")?.startsWith("application/json"))

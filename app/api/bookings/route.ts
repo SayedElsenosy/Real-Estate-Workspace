@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDatabase } from "@/lib/db/client";
-import { verifyBookingIdentity } from "@/lib/auth/verify-booking-identity";
+import { verifyRequestIdentity } from "@/lib/auth/mock-session";
 import { BookingError, createConfirmedBooking } from "@/lib/bookings/create-booking";
 
 export const runtime = "nodejs";
@@ -9,9 +9,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const noStore = { "Cache-Control": "no-store" };
 
 export async function POST(request: Request) {
-  let identity: Awaited<ReturnType<typeof verifyBookingIdentity>>;
+  let identity: Awaited<ReturnType<typeof verifyRequestIdentity>>;
   try {
-    identity = await verifyBookingIdentity(request.headers.get("authorization"));
+    identity = await verifyRequestIdentity(request);
   } catch {
     return NextResponse.json({ error: "خدمة المصادقة غير مجهزة" }, { status: 503, headers: noStore });
   }

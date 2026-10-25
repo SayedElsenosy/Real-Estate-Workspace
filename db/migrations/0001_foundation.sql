@@ -43,9 +43,12 @@ BEGIN
   END IF;
   RETURN NEW;
 END $$;
-DROP TRIGGER IF EXISTS users_tenant_role_guard ON public.users;
-CREATE TRIGGER users_tenant_role_guard BEFORE INSERT OR UPDATE OF role, tenant_id ON public.users
-FOR EACH ROW EXECUTE FUNCTION app.validate_user_tenant_role();
+DO $ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname='users_tenant_role_guard' AND tgrelid='public.users'::regclass) THEN
+    CREATE TRIGGER users_tenant_role_guard BEFORE INSERT OR UPDATE OF role, tenant_id ON public.users
+    FOR EACH ROW EXECUTE FUNCTION app.validate_user_tenant_role();
+  END IF;
+END $;
 
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname='tenant_runtime') THEN
@@ -74,21 +77,29 @@ ALTER TABLE public.tenants FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.users FORCE ROW LEVEL SECURITY;
 
-DROP POLICY IF EXISTS tenant_runtime_read ON public.tenants;
-CREATE POLICY tenant_runtime_read ON public.tenants
-  FOR SELECT TO tenant_runtime USING (tenant_id = (SELECT app.current_tenant_id()));
+DO $ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='tenants' AND policyname='tenant_runtime_read') THEN
+    CREATE POLICY tenant_runtime_read ON public.tenants
+      FOR SELECT TO tenant_runtime USING (tenant_id = (SELECT app.current_tenant_id()));
+  END IF;
+END $;
 
-DROP POLICY IF EXISTS tenant_runtime_read ON public.users;
-CREATE POLICY tenant_runtime_read ON public.users
-  FOR SELECT TO tenant_runtime USING (tenant_id = (SELECT app.current_tenant_id()));
+DO $ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='users' AND policyname='tenant_runtime_read') THEN
+    CREATE POLICY tenant_runtime_read ON public.users
+      FOR SELECT TO tenant_runtime USING (tenant_id = (SELECT app.current_tenant_id()));
+  END IF;
+END $;
 
 -- Separate, highly privileged schema-owner provisioning path; NEVER use these credentials
 -- in the web app. Platform Owner records DO NOT grant direct RLS bypass to runtime users.
 DO $$
 DECLARE schema_admin text := current_user;
 BEGIN
-  EXECUTE format('DROP POLICY IF EXISTS migrations_admin ON public.tenants');
-  EXECUTE format('CREATE POLICY migrations_admin ON public.tenants FOR ALL TO %I USING (true) WITH CHECK (true)', schema_admin);
-  EXECUTE format('DROP POLICY IF EXISTS migrations_admin ON public.users');
-  EXECUTE format('CREATE POLICY migrations_admin ON public.users FOR ALL TO %I USING (true) WITH CHECK (true)', schema_admin);
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='tenants' AND policyname='migrations_admin') THEN
+    EXECUTE format('CREATE POLICY migrations_admin ON public.tenants FOR ALL TO %I USING (true) WITH CHECK (true)', schema_admin);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='users' AND policyname='migrations_admin') THEN
+    EXECUTE format('CREATE POLICY migrations_admin ON public.users FOR ALL TO %I USING (true) WITH CHECK (true)', schema_admin);
+  END IF;
 END $$;

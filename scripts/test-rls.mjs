@@ -10,7 +10,7 @@ const a = randomUUID(), b = randomUUID(), marker = randomUUID().slice(0,8);
 const rollback = new Error("INTENTIONAL_TEST_ROLLBACK");
 let passed = false;
 
-async function checkTenant(tx, tenantId, expectedEmail, forbiddenEmail, expectedSlug, forbiddenSlug) {
+async function checkTenant(tx, tenantId, foreignTenantId, expectedEmail, forbiddenEmail, expectedSlug, forbiddenSlug) {
   await tx.unsafe("SET LOCAL ROLE tenant_runtime");
   await tx`SELECT set_config('app.tenant_id', ${tenantId}, true)`;
   const t = await tx`SELECT tenant_id, slug FROM public.tenants ORDER BY slug`;
@@ -21,7 +21,7 @@ async function checkTenant(tx, tenantId, expectedEmail, forbiddenEmail, expected
   assert.equal(u[0].email, expectedEmail);
   assert.ok(!t.some(row => row.slug===forbiddenSlug));
   assert.ok(!u.some(row => row.email===forbiddenEmail));
-  assert.equal((await tx`SELECT count(*)::int AS n FROM public.users WHERE tenant_id = ${forbiddenSlug==="none"?tenantId:tenantId}::uuid`)[0].n, 1);
+  assert.equal((await tx`SELECT count(*)::int AS n FROM public.users WHERE tenant_id = ${foreignTenantId}::uuid`)[0].n, 0);
   await tx.unsafe("RESET ROLE");
 }
 try {
@@ -36,8 +36,8 @@ try {
       const noContext = await tx`SELECT count(*)::int AS n FROM public.users`;
       assert.equal(noContext[0].n, 0, "Fail-closed when tenant context is missing");
       await tx.unsafe("RESET ROLE");
-      await checkTenant(tx,a,emailA,emailB,slugA,slugB);
-      await checkTenant(tx,b,emailB,emailA,slugB,slugA);
+      await checkTenant(tx,a,b,emailA,emailB,slugA,slugB);
+      await checkTenant(tx,b,a,emailB,emailA,slugB,slugA);
       await tx.unsafe("SET LOCAL ROLE tenant_runtime");
       const rights = await tx`SELECT has_table_privilege(current_user,'public.users','INSERT') AS can_insert,
         has_table_privilege(current_user,'public.users','UPDATE') AS can_update`;

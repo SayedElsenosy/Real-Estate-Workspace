@@ -45,9 +45,9 @@ try {
       const price=["1750000.00","2100000.50","2500000.01","3200000.00"][i-1];
       const x=i%2===1?60:355;
       const y=i<=2?75:270;
-      const coordinates=JSON.stringify({points:[[x,y],[x+270,y],[x+270,y+170],[x,y+170]]});
+      const coordinates={points:[[x,y],[x+270,y],[x+270,y+170],[x,y+170]]};
       await sql`INSERT INTO public.units(id,tenant_id,building_id,unit_number,area,price,status,svg_coordinates)
-        VALUES(${unitId},${item.t},${bu},${"A-"+(100+i)},${"85.50"},${price},${status}::unit_status,${coordinates}::jsonb)
+        VALUES(${unitId},${item.t},${bu},${"A-"+(100+i)},${"85.50"},${price},${status}::unit_status,${sql.json(coordinates)})
         ON CONFLICT (id) DO NOTHING`;
     }
   }

@@ -82,13 +82,6 @@ try {
   await expectPaymentCode(recordPayment(db,{...payment,tenantId:b}),"UNAUTHORIZED");
   await expectPaymentCode(recordPayment(db,{...payment,externalAuthId:subject+"-sales"}),"FORBIDDEN");
 
-  // Advance without installment ID remains unapplied; no installment is marked PAID.
-  const advance=await recordPayment(db,{...payment,installmentId:null,amount:"0.01"});
-  assert.equal(advance.installmentStatus,null);
-  assert.equal(advance.receipt.installmentId,null);
-  const p2=await owner`SELECT status FROM public.installments WHERE id=${installment2}`;
-  assert.equal(p2[0].status,"OVERDUE");
-
   // A unique bank-transfer reference failure must roll back PAID -> OVERDUE.
   const bankPayment={...payment,installmentId:installment2,method:"BANK_TRANSFER",
     referenceNumber:"BANK-REF-"+tag,amount:"333333.34"};
@@ -100,6 +93,13 @@ try {
   );
   const finalThird=await owner`SELECT status FROM public.installments WHERE id=${installment3}`;
   assert.equal(finalThird[0].status,"PENDING","FAILED insert must roll back status change");
+  // Advance without installment ID remains unapplied; no installment is marked PAID.
+  const advance=await recordPayment(db,{...payment,installmentId:null,amount:"0.01"});
+  assert.equal(advance.installmentStatus,null);
+  assert.equal(advance.receipt.installmentId,null);
+  const p2=await owner`SELECT status FROM public.installments WHERE id=${installment2}`;
+  assert.equal(p2[0].status,"OVERDUE");
+
   const finalRows=await owner`SELECT count(*)::int AS n FROM public.receipts WHERE tenant_id=${a}`;
   assert.equal(finalRows[0].n,3,"one cash + one advance + one bank receipt");
   console.log("PASS: 5 concurrent payments => 1 PAID receipt, 4 ALREADY_PAID; exact decimal, RLS, no partial, advance, rollback");

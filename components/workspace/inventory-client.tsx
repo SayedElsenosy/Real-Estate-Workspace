@@ -8,11 +8,12 @@ import { Table,TableBody,TableCell,TableHead,TableHeader,TableRow } from "@/comp
 import { StatusBadge } from "@/components/workspace/status-badge";
 import { BookingDialog,type UnitForBooking } from "@/components/workspace/booking-dialog";
 import { money } from "@/lib/utils";
+import { FloorplanViewer } from "@/components/workspace/FloorplanViewer";
 
 type Project={id:string;name:string;location:string;status:string};
 type Phase={id:string;projectId:string;name:string};
 type Building={id:string;phaseId:string;name:string};
-type Unit={id:string;buildingId:string;unitNumber:string;status:"AVAILABLE"|"BOOKED"|"SOLD";area:string;price:string};
+type Unit={id:string;buildingId:string;unitNumber:string;status:"AVAILABLE"|"BOOKED"|"SOLD";area:string;price:string;svgCoordinates:unknown};
 export function InventoryClient({projects,phases,buildings,initialUnits,selectedProjectId,canBook,customers}:{
  projects:Project[];phases:Phase[];buildings:Building[];initialUnits:Unit[];customers:{id:string;fullName:string;phonePrimary:string}[];
  selectedProjectId:string|null;canBook:boolean;
@@ -25,6 +26,7 @@ export function InventoryClient({projects,phases,buildings,initialUnits,selected
  const [units,setUnits]=useState(initialUnits);
  const [bookingUnit,setBookingUnit]=useState<UnitForBooking|null>(null);
  const [success,setSuccess]=useState("");
+ const [view,setView]=useState<"table"|"plan">("table");
  useEffect(()=>setUnits(initialUnits),[initialUnits]);
  const chosenPhases=useMemo(()=>phases.filter(p=>p.projectId===projectId),[phases,projectId]);
  const currentPhase=chosenPhases.some(p=>p.id===phaseId)?phaseId:(chosenPhases[0]?.id??"");
@@ -50,10 +52,10 @@ export function InventoryClient({projects,phases,buildings,initialUnits,selected
   <Card className="overflow-hidden">
     <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#e8eeeb] p-6">
       <div><h2 className="text-lg font-bold text-[#193f37]">وحدات {projectName}</h2><p className="mt-1 text-sm text-[#82968f]">{visible.length} وحدة في المبنى المحدد</p></div>
-      <div className="relative"><Search className="absolute top-3 right-3 size-4 text-[#97aaa5]"/><Input aria-label="بحث عن وحدة" value={search} onChange={e=>setSearch(e.target.value)} placeholder="ابحث برقم الوحدة" className="w-[210px] pr-10"/></div>
+      <div className="flex flex-wrap items-center gap-3"><div className="flex gap-2"><Button size="sm" variant={view==="table"?"default":"outline"} onClick={()=>setView("table")}>عرض الجدول</Button><Button size="sm" variant={view==="plan"?"default":"outline"} onClick={()=>setView("plan")}>عرض المخطط</Button></div><div className="relative"><Search className="absolute top-3 right-3 size-4 text-[#97aaa5]"/><Input aria-label="بحث عن وحدة" value={search} onChange={e=>setSearch(e.target.value)} placeholder="ابحث برقم الوحدة" className="w-[210px] pr-10"/></div></div>
     </div>
     {success&&<p role="status" className="mx-6 mt-5 flex items-center gap-2 rounded-xl bg-[#e6f6ed] px-4 py-3 text-sm text-[#147456]"><ShieldCheck className="size-4"/> تم تأكيد الحجز، وتحديث حالة الوحدة.</p>}
-    <Table><TableHeader><TableRow><TableHead>رقم الوحدة</TableHead><TableHead>المساحة</TableHead><TableHead>السعر</TableHead><TableHead>الحالة</TableHead><TableHead>الإجراء</TableHead></TableRow></TableHeader>
+    {view==="plan"?<FloorplanViewer units={visible} canBook={canBook} onBook={unit=>{setSuccess("");setBookingUnit(unit);}}/>:<><Table><TableHeader><TableRow><TableHead>رقم الوحدة</TableHead><TableHead>المساحة</TableHead><TableHead>السعر</TableHead><TableHead>الحالة</TableHead><TableHead>الإجراء</TableHead></TableRow></TableHeader>
       <TableBody>{visible.map(unit=><TableRow key={unit.id} data-testid={`unit-row-${unit.unitNumber}`}>
        <TableCell><span className="font-bold text-[#183c37]">{unit.unitNumber}</span></TableCell>
        <TableCell>{unit.area} م²</TableCell><TableCell><span dir="ltr" className="inline-block font-semibold">{money(unit.price)}</span></TableCell>
@@ -63,7 +65,7 @@ export function InventoryClient({projects,phases,buildings,initialUnits,selected
          <span className="text-xs text-[#9baba6]">{unit.status!=="AVAILABLE"?"غير متاح": "صلاحية العرض فقط"}</span>}</TableCell>
       </TableRow>)}</TableBody>
     </Table>
-    {visible.length===0&&<div className="p-14 text-center text-sm text-[#9aaba6]">لا توجد وحدات مطابقة للاختيار الحالي.</div>}
+    {visible.length===0&&<div className="p-14 text-center text-sm text-[#9aaba6]">لا توجد وحدات مطابقة للاختيار الحالي.</div>}</>}
   </Card>
   <BookingDialog customers={customers} unit={bookingUnit} onClose={()=>setBookingUnit(null)} onSuccess={id=>{
    setUnits(old=>old.map(u=>u.id===id?{...u,status:"BOOKED"}:u));

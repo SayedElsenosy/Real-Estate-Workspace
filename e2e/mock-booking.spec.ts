@@ -57,6 +57,9 @@ test("local sign-in → inventory → atomic booking → immediate UI update →
  await expect(page.getByText("عميل الاختبار آمن")).toHaveCount(0);
  await page.getByRole("link",{name:"المخزون",exact:true}).click();
  await expect(page.getByTestId("unit-row-A-101")).toContainText("متاحة");
+ await page.getByRole("button",{name:"عرض المخطط"}).click();
+ await expect(page.getByTestId("floorplan-unit-A-101")).toHaveAttribute("aria-label",/متاحة/);
+
 });
 
 test("accountant can see inventory but cannot book",async({page})=>{
@@ -71,4 +74,27 @@ test("accountant can see inventory but cannot book",async({page})=>{
  await page.getByRole("link",{name:"المخزون",exact:true}).click();
  await expect(page.getByTestId("unit-row-A-101")).toContainText("صلاحية العرض فقط");
  await expect(page.getByTestId("unit-row-A-101").getByRole("button",{name:"حجز"})).toHaveCount(0);
+});
+
+test("SVG floorplan opens booking modal and immediately recolors booked unit",async({page})=>{
+ await page.goto("/login");
+ await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة المدار العقارية"});
+ await page.getByLabel("الدور").selectOption("SALES");
+ await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
+ await expect(page).toHaveURL(/\/dashboard$/);
+ await page.getByRole("link",{name:"المخزون",exact:true}).click();
+ await page.getByRole("button",{name:"عرض المخطط"}).click();
+ const shape=page.getByTestId("floorplan-unit-A-101");
+ await expect(shape.locator("polygon")).toHaveAttribute("fill","#6bca93");
+ await shape.hover();
+ await expect(page.getByRole("tooltip")).toContainText("الوحدة A-101");
+ await expect(page.getByRole("tooltip")).toContainText("85.50");
+ await shape.click();
+ await expect(page.getByRole("dialog")).toBeVisible();
+ await page.getByLabel("اسم العميل").fill("مشتري مخطط SVG");
+ await page.getByLabel("رقم الهاتف").fill("01000204050");
+ await page.getByRole("button",{name:"تأكيد الحجز"}).click();
+ await expect(shape.locator("polygon")).toHaveAttribute("fill","#efab62");
+ await expect(shape).toHaveAttribute("aria-label",/محجوزة/);
+ await page.screenshot({path:"test-results/svg-after-booking.png",fullPage:true});
 });

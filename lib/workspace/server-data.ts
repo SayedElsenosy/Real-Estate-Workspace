@@ -25,7 +25,7 @@ export async function loadWorkspace() {
       tx.select({id:projects.id,name:projects.name,location:projects.location,status:projects.status}).from(projects).orderBy(projects.name),
       tx.select({id:phases.id,projectId:phases.projectId,name:phases.name}).from(phases),
       tx.select({id:buildings.id,phaseId:buildings.phaseId,name:buildings.name}).from(buildings),
-      tx.select({id:units.id,buildingId:units.buildingId,unitNumber:units.unitNumber,price:units.price,area:units.area,status:units.status}).from(units).orderBy(units.unitNumber),
+      tx.select({id:units.id,buildingId:units.buildingId,unitNumber:units.unitNumber,price:units.price,area:units.area,status:units.status,svgCoordinates:units.svgCoordinates}).from(units).orderBy(units.unitNumber),
       tx.select({id:bookings.id,unitId:bookings.unitId,customerId:bookings.customerId,customerName:bookings.customerName,customerPhone:bookings.customerPhone,status:bookings.status,bookingDate:bookings.bookingDate}).from(bookings).orderBy(bookings.bookingDate),
       tx.select({id:customers.id,fullName:customers.fullName,phonePrimary:customers.phonePrimary,phoneSecondary:customers.phoneSecondary,email:customers.email,nationalId:customers.nationalId,createdAt:customers.createdAt}).from(customers),
       tx.select({id:contracts.id,bookingId:contracts.bookingId,totalAmount:contracts.totalAmount,status:contracts.status,signedAt:contracts.signedAt}).from(contracts),

@@ -37,7 +37,7 @@ test("local sign-in → inventory → atomic booking → immediate UI update →
  await secondRow.getByRole("button",{name:"حجز"}).click();
  await page.getByRole("button",{name:"عميل موجود"}).click();
  await page.getByLabel("بحث عن عميل للحجز").fill("01010100123");
- await page.getByLabel("اختيار العميل").selectOption({label:/عميل الاختبار آمن/});
+ await page.getByLabel("اختيار العميل").selectOption({index:1});
  await page.getByRole("button",{name:"تأكيد الحجز"}).click();
  await expect(secondRow).toContainText("محجوزة");
  await page.getByRole("link",{name:"العملاء",exact:true}).click();

@@ -9,9 +9,11 @@
     "typecheck": "tsc --noEmit",
     "db:migrate": "node scripts/migrate.mjs",
     "test:rls": "node scripts/test-rls.mjs",
-    "test:foundation": "npm run typecheck && npm run test:rls && npm run test:inventory-rls && npm run test:booking-concurrency && npm run build",
+    "test:foundation": "npm run typecheck && npm run test:rls && npm run test:inventory-rls && npm run test:booking-concurrency && npm run test:installments-math && npm run test:contracts-transaction && npm run build",
     "test:inventory-rls": "node scripts/test-inventory-rls.mjs",
-    "test:booking-concurrency": "node --import tsx scripts/test-booking-concurrency.mjs"
+    "test:booking-concurrency": "node --import tsx scripts/test-booking-concurrency.mjs",
+    "test:installments-math": "node --import tsx scripts/test-installments-math.mjs",
+    "test:contracts-transaction": "node --import tsx scripts/test-contracts-transaction.mjs"
   },
   "dependencies": {
     "next": "16.4.1",
@@ -19,7 +21,8 @@
     "react-dom": "19.2.6",
     "drizzle-orm": "0.45.2",
     "postgres": "^3.4.7",
-    "jose": "^6.1.0"
+    "jose": "^6.1.0",
+    "decimal.js": "^10.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.16.0",

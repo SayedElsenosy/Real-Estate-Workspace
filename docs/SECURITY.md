@@ -42,3 +42,13 @@ The GitHub Actions workflow uses an ephemeral PostgreSQL 17 service for migratio
 - `svg_coordinates` is optional JSON object for later validated geometry; no maps or placeholder geometries inserted.
 - `scripts/test-inventory-rls.mjs` tests CRUD grants, missing tenant_id, read/update/delete isolation, and cross-tenant composite FK rejection in a rollback transaction.
 - No user-facing CRUD API is exposed before a trusted authenticated user/tenant authorization layer exists.
+
+## Stage 4 Contracts & Installments
+
+- Contract/Installment composite FKs include tenant_id, enforced by unique (tenant_id,id) booking and contract keys.
+- RLS ENABLE and FORCE on both tables; runtime CRUD scoped by transaction-local tenant_id.
+- Contracts only sign when booking is CONFIRMED, unit is BOOKED and signed-in actor is COMPANY_ADMIN, with unit row price snapshot and immutable plan snapshot.
+- Monetary operations use Decimal.js and strings; scale always NUMERIC(12,2) in PostgreSQL.
+- One transaction inserts signed ACTIVE contract plus all installment rows; any error rolls back the contract.
+- Current policy rejects contract total differing from approved unit price; discounts need a separate approval flow.
+- HTTP API remains fail-closed without trusted JWT issuer and restricted runtime DATABASE_URL.

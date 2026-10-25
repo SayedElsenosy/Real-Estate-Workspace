@@ -157,3 +157,41 @@ test("contract issuance, first installment payment, private DOCX upload and down
  expect(xml).not.toContain("{#installments}");
 
 });
+
+test("cheque issued against installment bounces and restores OVERDUE",async({page})=>{
+ await page.goto("/login");
+ await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة المدار العقارية"});
+ await page.getByLabel("الدور").selectOption("COMPANY_ADMIN");
+ await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
+ await expect(page).toHaveURL(/\/dashboard$/);
+ await page.getByRole("link",{name:"المخزون",exact:true}).click();
+ const unit=page.getByTestId("unit-row-A-102");
+ await unit.getByRole("button",{name:"حجز"}).click();
+ await page.getByLabel("اسم العميل").fill("عميل شيك مرتجع");
+ await page.getByLabel("رقم الهاتف").fill("01099991111");
+ await page.getByRole("button",{name:"تأكيد الحجز"}).click();
+ await expect(unit).toContainText("محجوزة");
+ await page.getByRole("link",{name:"الحجوزات",exact:true}).click();
+ await page.getByRole("row").filter({hasText:"عميل شيك مرتجع"}).getByRole("button",{name:"توليد عقد"}).click();
+ await page.getByRole("button",{name:"إنشاء العقد"}).click();
+ await expect(page).toHaveURL(/\/contracts$/);
+ await page.getByRole("row").filter({hasText:"عميل شيك مرتجع"}).getByRole("link").click();
+ const contractUrl=page.url();
+ const installment=page.getByTestId("installment-1");
+ await installment.getByRole("button",{name:"تسجيل دفعة"}).click();
+ await page.getByLabel("طريقة الدفع").selectOption("CHEQUE");
+ await page.getByLabel("رقم المرجع").fill("CH-TEST-BOUNCE-11");
+ await page.getByRole("button",{name:"تأكيد الدفع"}).click();
+ await expect(installment).toContainText("مدفوع");
+ await page.getByRole("link",{name:"الخزينة",exact:true}).click();
+ await expect(page.getByText("عميل شيك مرتجع")).toBeVisible();
+ await page.getByRole("button",{name:"ارتداد"}).click();
+ await page.getByLabel("سبب الارتداد").fill("رصيد غير كاف");
+ await page.getByRole("button",{name:"تأكيد الارتداد"}).click();
+ await expect(page.getByText("عميل شيك مرتجع")).toHaveCount(0);
+ await page.goto(contractUrl);
+ await expect(page.getByTestId("installment-1")).toContainText("متأخر");
+ await expect(page.getByRole("heading",{name:/العقد/})).toBeVisible();
+ await page.goto("/reports/aging");
+ await expect(page.getByRole("heading",{name:"تقرير أعمار المديونيات"})).toBeVisible();
+});

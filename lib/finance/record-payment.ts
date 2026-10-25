@@ -2,7 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 import type { PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import Decimal from "decimal.js";
 import * as schema from "../db/schema";
-import { contracts, installments, receipts, users } from "../db/schema";
+import { contracts, installments, receipts, receiptChequeEvents, users } from "../db/schema";
 import { parsePositiveMoney } from "../contracts/generate-installments";
 
 export type PaymentMethod = "CASH" | "BANK_TRANSFER" | "CHEQUE";
@@ -85,8 +85,9 @@ export async function recordPayment(
     // Numeric aggregation stays exact in PostgreSQL, then Decimal.js.
     const [aggregate] = await tx.select({
       collected: sql<string>`COALESCE(SUM(${receipts.amount}), 0)::text`,
-    }).from(receipts).where(and(
-      eq(receipts.tenantId,input.tenantId),eq(receipts.contractId,input.contractId),sql`${receipts.chequeClearanceStatus} <> 'BOUNCED'`,
+    }).from(receipts).leftJoin(receiptChequeEvents,and(eq(receiptChequeEvents.tenantId,receipts.tenantId),eq(receiptChequeEvents.receiptId,receipts.id))).where(and(
+      eq(receipts.tenantId,input.tenantId),eq(receipts.contractId,input.contractId),
+      sql`COALESCE(${receiptChequeEvents.newStatus},${receipts.chequeClearanceStatus}) IS DISTINCT FROM 'BOUNCED'::public.cheque_clearance_status_enum`,
     ));
     const alreadyCollected = new Decimal(aggregate.collected);
     if (alreadyCollected.plus(amount).gt(parsePositiveMoney(contract.total)))

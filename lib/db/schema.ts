@@ -236,8 +236,7 @@ export const receipts = pgTable("receipts", {
   }).onDelete("restrict"),
   index("receipts_tenant_contract_date_idx").on(table.tenantId,table.contractId,table.receiptDate),
   index("receipts_tenant_installment_idx").on(table.tenantId,table.installmentId),
-  uniqueIndex("receipts_single_settlement_per_installment_idx").on(table.tenantId,table.installmentId)
-    .where(sql`${table.installmentId} IS NOT NULL AND ${table.chequeClearanceStatus} IS DISTINCT FROM 'BOUNCED'`),
+  unique("receipts_tenant_id_id_unique").on(table.tenantId,table.id),
   uniqueIndex("receipts_tenant_method_reference_unique").on(table.tenantId,table.method,table.referenceNumber)
     .where(sql`${table.method} <> 'CASH' AND ${table.referenceNumber} IS NOT NULL`),
   check("receipts_amount_positive",sql`${table.amount} > 0`),

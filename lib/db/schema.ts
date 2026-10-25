@@ -106,6 +106,23 @@ export const units = pgTable("units", {
     sql`${table.svgCoordinates} IS NULL OR jsonb_typeof(${table.svgCoordinates}) = 'object'`),
 ]);
 
+export const customers = pgTable("customers", {
+ id:uuid("id").primaryKey().defaultRandom(),
+ tenantId:uuid("tenant_id").notNull().references(()=>tenants.tenantId,{onDelete:"restrict"}),
+ fullName:text("full_name").notNull(),
+ phonePrimary:text("phone_primary").notNull(),
+ phoneSecondary:text("phone_secondary"),
+ email:text("email"),
+ nationalId:text("national_id"),
+ createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+},t=>[
+ unique("customers_tenant_id_id_unique").on(t.tenantId,t.id),
+ uniqueIndex("customers_tenant_phone_unique").on(t.tenantId,t.phonePrimary),
+ index("customers_tenant_name_idx").on(t.tenantId,t.fullName),
+ check("customers_name_valid",sql`length(btrim(${t.fullName})) BETWEEN 2 AND 200`),
+ check("customers_phone_valid",sql`length(btrim(${t.phonePrimary})) BETWEEN 6 AND 30`),
+]);
+
 export const bookingStatus = pgEnum("booking_status", ["PENDING","CONFIRMED","CANCELLED"]);
 
 export const bookings = pgTable("bookings", {
@@ -115,6 +132,7 @@ export const bookings = pgTable("bookings", {
   status: bookingStatus("status").notNull().default("PENDING"),
   customerName: text("customer_name").notNull(),
   customerPhone: text("customer_phone").notNull(),
+  customerId: uuid("customer_id"),
   bookingDate: timestamp("booking_date", { withTimezone: true }).notNull().defaultNow(),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
 }, (table) => [
@@ -123,6 +141,8 @@ export const bookings = pgTable("bookings", {
     columns: [table.tenantId, table.unitId],
     foreignColumns: [units.tenantId, units.id],
   }).onDelete("restrict"),
+  foreignKey({name:"bookings_tenant_customer_fk",columns:[table.tenantId,table.customerId],foreignColumns:[customers.tenantId,customers.id]}).onDelete("restrict"),
+  index("bookings_tenant_customer_idx").on(table.tenantId,table.customerId),
   index("bookings_tenant_unit_status_idx").on(table.tenantId, table.unitId, table.status),
   uniqueIndex("bookings_one_active_per_unit_idx").on(table.tenantId, table.unitId)
     .where(sql`${table.status} IN ('PENDING','CONFIRMED')`),

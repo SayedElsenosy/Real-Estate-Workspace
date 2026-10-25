@@ -1,3 +1,4 @@
+import { businessDate } from "../utils/date";
 import Decimal from "decimal.js";
 
 // Money is NEVER converted to JavaScript Number / float; all arithmetic stays Decimal.
@@ -16,7 +17,7 @@ export type PaymentPlan = {
 
 export type ScheduledInstallment = {
   sequence: number;
-  dueDate: string; // YYYY-MM-DD in UTC
+  dueDate: string; // YYYY-MM-DD in Africa/Cairo
   amount: string; // exact 2-decimal fixed string
   isDownPayment: boolean;
 };
@@ -36,12 +37,12 @@ export function parsePositiveMoney(amount: string): Decimal {
 
 function paymentDate(signedAt: Date, monthOffset: number): string {
   // Anchor every due date to the ORIGINAL signing day (Jan 31 -> Apr 30).
-  const year = signedAt.getUTCFullYear();
-  const month = signedAt.getUTCMonth() + monthOffset;
-  const originalDay = signedAt.getUTCDate();
-  const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
-  const safeDay = originalDay > lastDay ? lastDay : originalDay;
-  return new Date(Date.UTC(year, month, safeDay)).toISOString().slice(0, 10);
+  const [year,month,day]=businessDate(signedAt).split("-").map(Number);
+  const monthIndex=month-1+monthOffset;
+  const targetYear=year+Math.floor(monthIndex/12);
+  const targetMonth=((monthIndex%12)+12)%12+1;
+  const lastDay=new Date(Date.UTC(targetYear,targetMonth,0)).getUTCDate();
+  return `${targetYear}-${String(targetMonth).padStart(2,"0")}-${String(Math.min(day,lastDay)).padStart(2,"0")}`;
 }
 
 export function generateInstallments(

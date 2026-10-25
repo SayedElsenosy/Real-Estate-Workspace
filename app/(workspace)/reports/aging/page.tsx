@@ -1,3 +1,4 @@
+import {businessDate} from "@/lib/utils/date";
 import Decimal from "decimal.js";
 import {loadWorkspace} from "@/lib/workspace/server-data";
 import {PageHeader} from "@/components/workspace/page-header";
@@ -8,7 +9,7 @@ const labels=["1–30 يوم","31–60 يوم","61–90 يوم","أكثر من 9
 type Bucket={name:string;amount:Decimal;count:number};
 export default async function AgingReport(){
  const d=await loadWorkspace();
- const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Cairo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+ const today=businessDate(new Date());
  const dateOf=(s:string)=>Date.UTC(Number(s.slice(0,4)),Number(s.slice(5,7))-1,Number(s.slice(8,10)));
  const byCustomer=new Map<string,{name:string;amount:Decimal;count:number}>();
  const buckets:Bucket[]=labels.map(name=>({name,amount:new Decimal(0),count:0}));

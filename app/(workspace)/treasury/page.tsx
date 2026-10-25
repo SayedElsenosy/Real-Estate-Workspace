@@ -1,3 +1,4 @@
+import {businessDate} from "@/lib/utils/date";
 import {loadWorkspace} from "@/lib/workspace/server-data";
 import {PageHeader} from "@/components/workspace/page-header";
 import {Card} from "@/components/ui/card";
@@ -8,7 +9,7 @@ import {PendingCheques} from "@/components/workspace/pending-cheques";
 const methods:Record<string,string>={CASH:"نقدي",BANK_TRANSFER:"تحويل بنكي",CHEQUE:"شيك"};
 export default async function TreasuryPage(){
  const d=await loadWorkspace();
- const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Cairo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+ const today=businessDate(new Date());
  const todayTotal=d.receipts.filter(r=>r.receiptDate===today&&r.chequeClearanceStatus==="CLEARED").reduce((sum,r)=>sum.plus(r.amount),new Decimal(0));
  const unpaidOverdue=d.installments.filter(i=>i.status==="OVERDUE"||(i.status==="PENDING"&&i.dueDate<today)).reduce((sum,i)=>sum.plus(i.amount),new Decimal(0));
  const pending=d.receipts.filter(r=>r.method==="CHEQUE"&&r.chequeClearanceStatus==="PENDING").map(r=>{

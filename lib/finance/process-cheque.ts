@@ -1,7 +1,7 @@
 import {and,eq,sql} from "drizzle-orm";
 import type {PostgresJsDatabase} from "drizzle-orm/postgres-js";
 import * as schema from "../db/schema";
-import {contracts,installments,receipts,users} from "../db/schema";
+import {contracts,installments,receipts,receiptChequeEvents,users} from "../db/schema";
 
 export class ChequeError extends Error {
  constructor(readonly code:string,message:string,readonly status:number){super(message);this.name="ChequeError";}
@@ -30,7 +30,8 @@ export async function processChequeStatus(db:PostgresJsDatabase<typeof schema>,i
    .where(and(eq(receipts.tenantId,input.tenantId),eq(receipts.id,input.receiptId))).for("update").limit(1);
   if(!receipt||receipt.method!=="CHEQUE")
    throw new ChequeError("NOT_CHEQUE","هذه العملية متاحة للشيكات فقط",422);
-  if(receipt.chequeClearanceStatus!=="PENDING")
+  const [resolved]=await tx.select({id:receiptChequeEvents.id}).from(receiptChequeEvents).where(and(eq(receiptChequeEvents.tenantId,input.tenantId),eq(receiptChequeEvents.receiptId,receipt.id))).limit(1);
+  if(receipt.chequeClearanceStatus!=="PENDING"||resolved)
    throw new ChequeError("ALREADY_PROCESSED","تمت معالجة الشيك بالفعل",409);
   if(input.newStatus==="BOUNCED"&&receipt.installmentId){
    const [i]=await tx.select({id:installments.id,status:installments.status}).from(installments)
@@ -39,12 +40,12 @@ export async function processChequeStatus(db:PostgresJsDatabase<typeof schema>,i
     throw new ChequeError("STATUS_CONFLICT","لا يمكن إرجاع القسط: حالته الحالية غير متوقعة",409);
    await tx.update(installments).set({status:"OVERDUE"}).where(and(eq(installments.tenantId,input.tenantId),eq(installments.id,i.id)));
   }
-  const [updated]=await tx.update(receipts).set({
-   chequeClearanceStatus:input.newStatus,
-   bouncedReason:input.newStatus==="BOUNCED"?input.reason!.trim():null,
-   bouncedAt:input.newStatus==="BOUNCED"?new Date():null,
-  }).where(and(eq(receipts.tenantId,input.tenantId),eq(receipts.id,receipt.id)))
-   .returning({id:receipts.id,chequeClearanceStatus:receipts.chequeClearanceStatus,installmentId:receipts.installmentId});
-  return {receipt:updated,installmentStatus:input.newStatus==="BOUNCED"&&receipt.installmentId?"OVERDUE":null};
+  const [updated]=await tx.insert(receiptChequeEvents).values({
+   tenantId:input.tenantId,receiptId:receipt.id,newStatus:input.newStatus,
+   reason:input.newStatus==="BOUNCED"?input.reason!.trim():null,
+  }).onConflictDoNothing({target:[receiptChequeEvents.tenantId,receiptChequeEvents.receiptId]})
+   .returning({id:receiptChequeEvents.receiptId,newStatus:receiptChequeEvents.newStatus});
+  if(!updated)throw new ChequeError("ALREADY_PROCESSED","تمت معالجة الشيك بالفعل",409);
+  return {receipt:{id:receipt.id,chequeClearanceStatus:updated.newStatus,installmentId:receipt.installmentId},installmentStatus:input.newStatus==="BOUNCED"&&receipt.installmentId?"OVERDUE":null};
  });
 }

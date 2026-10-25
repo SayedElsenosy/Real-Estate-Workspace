@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "db:migrate": "node scripts/migrate.mjs",
+    "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
     "test:rls": "node scripts/test-rls.mjs",
     "test:foundation": "npm run typecheck && npm run test:rls && npm run test:inventory-rls && npm run test:booking-concurrency && npm run test:installments-math && npm run test:contracts-transaction && npm run test:payments-concurrency && npm run build",
     "test:inventory-rls": "node scripts/test-inventory-rls.mjs",
@@ -15,8 +15,9 @@
     "test:installments-math": "node --import tsx scripts/test-installments-math.mjs",
     "test:contracts-transaction": "node --import tsx scripts/test-contracts-transaction.mjs",
     "test:payments-concurrency": "node --import tsx scripts/test-payments-concurrency.mjs",
-    "db:seed-demo": "node --import tsx scripts/seed-demo.mjs",
-    "test:e2e": "playwright test"
+    "db:seed-demo": "node --env-file-if-exists=.env.local --import tsx scripts/seed-demo.mjs",
+    "test:e2e": "playwright test",
+    "db:create-demo-runtime": "node --env-file-if-exists=.env.local scripts/create-demo-runtime.mjs"
   },
   "dependencies": {
     "next": "16.4.1",

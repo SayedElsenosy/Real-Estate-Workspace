@@ -74,7 +74,7 @@ try {
 
       // Missing tenant_id must always fail; tenant A must not insert B's data.
       await expectSqlFailure(tx, sp => sp`INSERT INTO public.units (building_id,unit_number,area,price)
-        VALUES (${buildingA},'INVALID-NO-TENANT','20.00','1.00')`, "23502");
+        VALUES (${buildingA},'INVALID-NO-TENANT','20.00','1.00')`, "42501");
       await expectSqlFailure(tx, sp => sp`INSERT INTO public.units (tenant_id,building_id,unit_number,area,price)
         VALUES (${b},${buildingB},'INVALID-B','20.00','1.00')`, "42501");
       // Even knowing B's parent UUID does not let A link its own records to B.
@@ -86,6 +86,10 @@ try {
         VALUES (${a},${phaseB},'INVALID-CROSS-PHASE')`, "23503");
 
       await backToOwner(tx);
+      // The runtime rejects a missing tenant via RLS first (42501).
+      // Check the NOT NULL constraint independently as migration owner (23502).
+      await expectSqlFailure(tx, sp => sp`INSERT INTO public.units (building_id,unit_number,area,price)
+        VALUES (${buildingA},'INVALID-NULL-TENANT-AS-OWNER','20.00','1.00')`, "23502");
       await assumeTenant(tx,b);
       const rowsB = await tx`SELECT id FROM public.projects`;
       const unitsB = await tx`SELECT id FROM public.units`;

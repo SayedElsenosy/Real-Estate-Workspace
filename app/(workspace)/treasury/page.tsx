@@ -1,14 +1,22 @@
-import { loadWorkspace } from "@/lib/workspace/server-data";
-import { PageHeader } from "@/components/workspace/page-header";
-import { Card } from "@/components/ui/card";
-import { Table,TableHeader,TableRow,TableHead,TableBody,TableCell } from "@/components/ui/table";
-import { money } from "@/lib/utils";
+import {loadWorkspace} from "@/lib/workspace/server-data";
+import {PageHeader} from "@/components/workspace/page-header";
+import {Card} from "@/components/ui/card";
+import {Table,TableHeader,TableRow,TableHead,TableBody,TableCell} from "@/components/ui/table";
+import {money} from "@/lib/utils";
+import Decimal from "decimal.js";
 const methods:Record<string,string>={CASH:"نقدي",BANK_TRANSFER:"تحويل بنكي",CHEQUE:"شيك"};
 export default async function TreasuryPage(){
  const d=await loadWorkspace();
- return <><PageHeader eyebrow="المالية / TREASURY" title="الخزينة والمقبوضات" description="المقبوضات المسجلة حسب العقد وطريقة الدفع، بدون بيانات وهمية."/><Card className="overflow-hidden">
- <Table><TableHeader><TableRow><TableHead>رقم الإيصال</TableHead><TableHead>القيمة</TableHead><TableHead>طريقة الدفع</TableHead><TableHead>رقم العقد</TableHead><TableHead>التاريخ</TableHead></TableRow></TableHeader>
- <TableBody>{d.receipts.map(r=><TableRow key={r.id}><TableCell><span dir="ltr">{r.id.slice(0,8).toUpperCase()}</span></TableCell><TableCell><span dir="ltr" className="inline-block">{money(r.amount)}</span></TableCell><TableCell>{methods[r.method]}</TableCell><TableCell><span dir="ltr">{r.contractId.slice(0,8).toUpperCase()}</span></TableCell><TableCell>{r.receiptDate}</TableCell></TableRow>)}</TableBody></Table>
- {d.receipts.length===0&&<p className="p-10 text-center text-[#91a39d]">لا توجد مقبوضات حتى الآن.</p>}
- </Card><p className="mt-4 text-xs text-[#9aaba6]">تنبيه: تسوية الشيكات البنكية والشيكات المرتدة ليست مفعلة بعد.</p></>;
+ const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Cairo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+ const todayTotal=d.receipts.filter(r=>r.receiptDate===today).reduce((sum,r)=>sum.plus(r.amount),new Decimal(0));
+ const unpaidOverdue=d.installments.filter(i=>i.status==="OVERDUE"||(i.status==="PENDING"&&i.dueDate<today)).reduce((sum,i)=>sum.plus(i.amount),new Decimal(0));
+ const chequeRecorded=d.receipts.filter(r=>r.method==="CHEQUE").reduce((sum,r)=>sum.plus(r.amount),new Decimal(0));
+ return <><PageHeader eyebrow="المالية / TREASURY" title="لوحة الخزينة" description="مؤشرات مبنية على إيصالات وأقساط حقيقية."/>
+ <div className="mb-6 grid gap-4 md:grid-cols-3">
+ <Card className="p-5"><p>المقبوضات المسجلة اليوم</p><strong>{money(todayTotal.toFixed(2))}</strong></Card>
+ <Card className="p-5"><p>الشيكات المسجلة (غير مصنفة التحصيل)</p><strong>{money(chequeRecorded.toFixed(2))}</strong><p className="text-xs text-amber-700">لا تتوفر حالة clearing، لذلك لا يمكن حساب المعلق بدقة.</p></Card>
+ <Card className="p-5"><p>الأقساط غير المدفوعة والمتأخرة</p><strong>{money(unpaidOverdue.toFixed(2))}</strong></Card></div>
+ <Card className="overflow-hidden"><Table><TableHeader><TableRow><TableHead>رقم الإيصال</TableHead><TableHead>القيمة</TableHead><TableHead>طريقة الدفع</TableHead><TableHead>رقم العقد</TableHead><TableHead>التاريخ</TableHead></TableRow></TableHeader>
+ <TableBody>{d.receipts.map(r=><TableRow key={r.id}><TableCell>{r.id.slice(0,8).toUpperCase()}</TableCell><TableCell>{money(r.amount)}</TableCell><TableCell>{methods[r.method]}</TableCell><TableCell>{r.contractId.slice(0,8).toUpperCase()}</TableCell><TableCell>{r.receiptDate}</TableCell></TableRow>)}</TableBody></Table></Card>
+ <p className="mt-4 text-sm text-amber-700">تنبيه: تسجيل إيصال بشيك لا يثبت تحصيل قيمته في البنك. دورة تسوية الشيكات والمرتجعات غير منفذة.</p></>;
 }

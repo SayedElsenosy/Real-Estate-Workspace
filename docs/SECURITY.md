@@ -52,3 +52,15 @@ The GitHub Actions workflow uses an ephemeral PostgreSQL 17 service for migratio
 - One transaction inserts signed ACTIVE contract plus all installment rows; any error rolls back the contract.
 - Current policy rejects contract total differing from approved unit price; discounts need a separate approval flow.
 - HTTP API remains fail-closed without trusted JWT issuer and restricted runtime DATABASE_URL.
+
+## Stage 5 Receipts and Treasury
+
+- `receipts` includes tenant_id NOT NULL. RLS ENABLE + FORCE with runtime CRUD and migration owner-only policy.
+- Composite receipt FK to `installments(tenant_id,contract_id,id)` blocks referencing another contract's installment, even in the SAME tenant.
+- `recordPayment` locks contract then installment (FOR UPDATE) in a single transaction, requires authenticated ACCOUNTANT or COMPANY_ADMIN. Installment must be PENDING or OVERDUE and amount EXACT.
+- Receipt insert and installment status update roll back together on failures (e.g. duplicate transfer references).
+- Receipts per contract cannot exceed total contract price; all money comparisons use exact Decimal and database NUMERIC.
+- Non-cash reference required and unique per tenant/method; one full settlement receipt per installment.
+- `installment_id=NULL` is an unallocated advance: does NOT mark any installment PAID; no automatic allocation to down payment installments.
+- **Business limitation:** recording a CHEQUE immediately marks installment PAID but does NOT verify clearing or handle bounced instruments. This simplification is unsuitable for actual cash accounting until bank-clearance and reversal workflows are implemented.
+- No end-to-end live JWT authentication or production deployment configured; HTTP endpoints fail closed without trusted issuer and restricted runtime credentials.

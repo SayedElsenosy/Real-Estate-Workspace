@@ -4,12 +4,18 @@ import {Card} from "@/components/ui/card";
 import {Table,TableHeader,TableRow,TableHead,TableBody,TableCell} from "@/components/ui/table";
 import {money} from "@/lib/utils";
 import Decimal from "decimal.js";
+import {PendingCheques} from "@/components/workspace/pending-cheques";
 const methods:Record<string,string>={CASH:"نقدي",BANK_TRANSFER:"تحويل بنكي",CHEQUE:"شيك"};
 export default async function TreasuryPage(){
  const d=await loadWorkspace();
  const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Cairo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
- const todayTotal=d.receipts.filter(r=>r.receiptDate===today).reduce((sum,r)=>sum.plus(r.amount),new Decimal(0));
+ const todayTotal=d.receipts.filter(r=>r.receiptDate===today&&r.chequeClearanceStatus==="CLEARED").reduce((sum,r)=>sum.plus(r.amount),new Decimal(0));
  const unpaidOverdue=d.installments.filter(i=>i.status==="OVERDUE"||(i.status==="PENDING"&&i.dueDate<today)).reduce((sum,i)=>sum.plus(i.amount),new Decimal(0));
+ const pending=d.receipts.filter(r=>r.method==="CHEQUE"&&r.chequeClearanceStatus==="PENDING").map(r=>{
+  const contract=d.contracts.find(c=>c.id===r.contractId);
+  const booking=d.bookings.find(b=>b.id===contract?.bookingId);
+  return {id:r.id,amount:r.amount,referenceNumber:null as string|null,customer:booking?.customerName||"—",receiptDate:r.receiptDate};
+ });
  const chequeRecorded=d.receipts.filter(r=>r.method==="CHEQUE"&&r.chequeClearanceStatus==="PENDING").reduce((sum,r)=>sum.plus(r.amount),new Decimal(0));
  return <><PageHeader eyebrow="المالية / TREASURY" title="لوحة الخزينة" description="مؤشرات مبنية على إيصالات وأقساط حقيقية."/>
  <div className="mb-6 grid gap-4 md:grid-cols-3">

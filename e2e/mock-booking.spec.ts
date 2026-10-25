@@ -28,6 +28,10 @@ test("local sign-in → inventory → atomic booking → immediate UI update →
  await expect(page.getByRole("status")).toContainText("تم تأكيد الحجز");
  await page.getByRole("link",{name:"الحجوزات",exact:true}).click();
  await expect(page.getByText("عميل الاختبار آمن")).toBeVisible();
+ await page.getByRole("link",{name:"العملاء",exact:true}).click();
+ await expect(page.getByText("عميل الاختبار آمن")).toBeVisible();
+ await page.getByRole("link",{name:"Customer 360"}).first().click();
+ await expect(page.getByRole("heading",{name:"عميل الاختبار آمن"})).toBeVisible();
 
  await page.getByRole("button",{name:"تبديل الحساب"}).click();
  await expect(page).toHaveURL(/\/login$/);
@@ -38,6 +42,8 @@ test("local sign-in → inventory → atomic booking → immediate UI update →
  await expect(loginResponseB.ok()).toBeTruthy();
  await expect(page.locator("aside").getByText("شركة المدار العقارية",{exact:true})).toBeVisible();
  await page.getByRole("link",{name:"الحجوزات",exact:true}).click();
+ await expect(page.getByText("عميل الاختبار آمن")).toHaveCount(0);
+ await page.getByRole("link",{name:"العملاء",exact:true}).click();
  await expect(page.getByText("عميل الاختبار آمن")).toHaveCount(0);
  await page.getByRole("link",{name:"المخزون",exact:true}).click();
  await expect(page.getByTestId("unit-row-A-101")).toContainText("متاحة");

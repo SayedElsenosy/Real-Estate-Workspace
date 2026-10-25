@@ -5,7 +5,7 @@ import postgres from "postgres";
 const url = process.env.DATABASE_URL_ADMIN;
 if (!url) throw new Error("DATABASE_URL_ADMIN required for migrations; NEVER use admin credentials in runtime");
 const db = postgres(url, { max: 1, prepare: false });
-const files = ["0001_foundation.sql", "0002_inventory.sql", "0003_bookings.sql", "0004_contracts.sql", "0005_receipts.sql", "0006_customers.sql"];
+const files = ["0001_foundation.sql", "0002_inventory.sql", "0003_bookings.sql", "0004_contracts.sql", "0005_receipts.sql", "0006_customers.sql", "0007_contract_templates.sql"];
 try {
   for (const file of files) {
     const script = await readFile(new URL(`../db/migrations/${file}`, import.meta.url), "utf8");

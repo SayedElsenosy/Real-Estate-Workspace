@@ -167,6 +167,7 @@ export const contracts = pgTable("contracts", {
   }>().notNull(),
   status: contractStatus("status").notNull().default("DRAFT"),
   signedAt: timestamp("signed_at",{withTimezone:true}),
+  generatedDocxUrl:text("generated_docx_url"),
   createdAt: timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
 }, table=>[
   unique("contracts_tenant_id_id_key").on(table.tenantId,table.id),
@@ -239,3 +240,12 @@ export const receipts = pgTable("receipts", {
   check("receipts_reference_required_check",
     sql`${table.method} = 'CASH' OR (${table.referenceNumber} IS NOT NULL AND length(btrim(${table.referenceNumber})) > 0)`),
 ]);
+
+export const contractTemplates=pgTable("contract_templates",{
+ id:uuid("id").primaryKey().defaultRandom(),
+ tenantId:uuid("tenant_id").notNull().references(()=>tenants.tenantId,{onDelete:"restrict"}),
+ name:text("name").notNull(),
+ fileUrl:text("file_url").notNull(),
+ isActive:boolean("is_active").notNull().default(true),
+ createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+},t=>[unique("contract_templates_tenant_id_id_key").on(t.tenantId,t.id),index("contract_templates_tenant_active_idx").on(t.tenantId,t.isActive)]);

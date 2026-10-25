@@ -32,7 +32,9 @@
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.3.1",
+    "docxtemplater": "^3.67.0",
+    "pizzip": "^3.2.0"
   },
   "devDependencies": {
     "@types/node": "^22.16.0",

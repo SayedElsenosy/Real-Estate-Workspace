@@ -15,7 +15,7 @@ export async function POST(req:Request) {
     return NextResponse.json({error:"شركة أو صلاحية تجريبية غير صالحة"},{status:400});
   // Enforce same-origin even in local dev, since this issues an HttpOnly cookie.
   const origin=req.headers.get("origin");
-  if (!origin || new URL(origin).origin!==new URL(req.url).origin)
+  if (!origin || new URL(origin).host!==req.headers.get("host"))
     return NextResponse.json({error:"طلب غير مصرح به"},{status:403});
   const token=await signMockSession(data.tenantId as string,data.role as DemoRole);
   const response=NextResponse.json({ok:true},{headers:{"Cache-Control":"no-store"}});

@@ -14,7 +14,7 @@ export default async function TreasuryPage(){
  const pending=d.receipts.filter(r=>r.method==="CHEQUE"&&r.chequeClearanceStatus==="PENDING").map(r=>{
   const contract=d.contracts.find(c=>c.id===r.contractId);
   const booking=d.bookings.find(b=>b.id===contract?.bookingId);
-  return {id:r.id,amount:r.amount,referenceNumber:null as string|null,customer:booking?.customerName||"—",receiptDate:r.receiptDate};
+  return {id:r.id,amount:r.amount,referenceNumber:r.referenceNumber,customer:booking?.customerName||"—",receiptDate:r.receiptDate};
  });
  const chequeRecorded=d.receipts.filter(r=>r.method==="CHEQUE"&&r.chequeClearanceStatus==="PENDING").reduce((sum,r)=>sum.plus(r.amount),new Decimal(0));
  return <><PageHeader eyebrow="المالية / TREASURY" title="لوحة الخزينة" description="مؤشرات مبنية على إيصالات وأقساط حقيقية."/>

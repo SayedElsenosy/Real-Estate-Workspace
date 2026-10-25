@@ -2,10 +2,8 @@ DO $$ BEGIN CREATE TYPE public.cheque_clearance_status_enum AS ENUM ('PENDING','
 ALTER TABLE public.receipts ADD COLUMN IF NOT EXISTS bounced_reason text;
 ALTER TABLE public.receipts ADD COLUMN IF NOT EXISTS bounced_at timestamptz;
 UPDATE public.receipts SET cheque_clearance_status='CLEARED' WHERE method <> 'CHEQUE' AND cheque_clearance_status IS DISTINCT FROM 'CLEARED';
--- Historical cheques without a known status stay PENDING (unverified, requires reconciliation).
-UPDATE public.receipts SET cheque_clearance_status='PENDING' WHERE method='CHEQUE' AND cheque_clearance_status IS NULL;
+-- Leave historical cheque NULL statuses unclassified; never infer bank collection state.
 ALTER TABLE public.receipts ALTER COLUMN cheque_clearance_status TYPE public.cheque_clearance_status_enum USING cheque_clearance_status::public.cheque_clearance_status_enum;
-ALTER TABLE public.receipts ALTER COLUMN cheque_clearance_status SET NOT NULL;
 -- Default is CLEARED for ordinary receipts; a trigger overrides CHEQUE to PENDING.
 ALTER TABLE public.receipts ALTER COLUMN cheque_clearance_status SET DEFAULT 'CLEARED'::public.cheque_clearance_status_enum;
 CREATE OR REPLACE FUNCTION public.receipt_initial_clearance() RETURNS trigger LANGUAGE plpgsql AS $$

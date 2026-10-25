@@ -35,7 +35,7 @@ test("local sign-in → inventory → atomic booking → immediate UI update →
  const responsePromiseB=page.waitForResponse(r=>r.url().includes("/api/dev/login"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
  const loginResponseB=await responsePromiseB;
- await expect(loginResponse.ok()).toBeTruthy();
+ await expect(loginResponseB.ok()).toBeTruthy();
  await expect(page.locator("aside").getByText("شركة المدار العقارية",{exact:true})).toBeVisible();
  await page.getByRole("link",{name:"الحجوزات",exact:true}).click();
  await expect(page.getByText("عميل الاختبار آمن")).toHaveCount(0);

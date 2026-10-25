@@ -1,4 +1,4 @@
-name: Phases 1-4 Foundation Inventory Booking Contracts CI
+name: Phases 1-5 Foundation Inventory Booking Contracts Treasury CI
 on:
   push:
     branches: [main]
@@ -34,5 +34,6 @@ jobs:
       - run: npm run test:booking-concurrency
       - run: npm run test:installments-math
       - run: npm run test:contracts-transaction
+      - run: npm run test:payments-concurrency
       - run: npm run typecheck
       - run: npm run build

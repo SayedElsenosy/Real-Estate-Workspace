@@ -3,7 +3,7 @@ import {getDatabase} from "@/lib/db/client";
 import {verifyRequestIdentity} from "@/lib/auth/mock-session";
 import {cancelConfirmedBooking,BookingCancellationError} from "@/lib/bookings/cancel-booking";
 export const runtime="nodejs";
-const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){
  const {id}=await params;
  if(!uuid.test(id))return NextResponse.json({error:"معرف الحجز غير صالح"},{status:400});

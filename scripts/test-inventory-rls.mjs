@@ -17,9 +17,13 @@ async function assumeTenant(tx, id) {
 async function backToOwner(tx) {
   await tx.unsafe("RESET ROLE");
 }
-async function expectSqlFailure(tx, action, reason) {
-  // PostgreSQL rolls back only this savepoint on an expected constraint/RLS error.
-  await assert.rejects(tx.savepoint(async sp => action(sp)), reason);
+async function expectSqlFailure(tx, action, expectedCode) {
+  // Savepoint keeps the enclosing transaction valid after an expected SQL error.
+  await assert.rejects(
+    tx.savepoint(async sp => action(sp)),
+    (error) => error?.code === expectedCode,
+    `Expected PostgreSQL error code ${expectedCode}`,
+  );
 }
 
 try {
@@ -70,16 +74,16 @@ try {
 
       // Missing tenant_id must always fail; tenant A must not insert B's data.
       await expectSqlFailure(tx, sp => sp`INSERT INTO public.units (building_id,unit_number,area,price)
-        VALUES (${buildingA},'INVALID-NO-TENANT','20.00','1.00')`, /./);
+        VALUES (${buildingA},'INVALID-NO-TENANT','20.00','1.00')`, "23502");
       await expectSqlFailure(tx, sp => sp`INSERT INTO public.units (tenant_id,building_id,unit_number,area,price)
-        VALUES (${b},${buildingB},'INVALID-B','20.00','1.00')`, /./);
+        VALUES (${b},${buildingB},'INVALID-B','20.00','1.00')`, "42501");
       // Even knowing B's parent UUID does not let A link its own records to B.
       await expectSqlFailure(tx, sp => sp`INSERT INTO public.units (tenant_id,building_id,unit_number,area,price)
-        VALUES (${a},${buildingB},'INVALID-CROSS-BUILDING','20.00','1.00')`, /./);
+        VALUES (${a},${buildingB},'INVALID-CROSS-BUILDING','20.00','1.00')`, "23503");
       await expectSqlFailure(tx, sp => sp`INSERT INTO public.phases (tenant_id,project_id,name)
-        VALUES (${a},${pidB},'INVALID-CROSS-PROJECT')`, /./);
+        VALUES (${a},${pidB},'INVALID-CROSS-PROJECT')`, "23503");
       await expectSqlFailure(tx, sp => sp`INSERT INTO public.buildings (tenant_id,phase_id,name)
-        VALUES (${a},${phaseB},'INVALID-CROSS-PHASE')`, /./);
+        VALUES (${a},${phaseB},'INVALID-CROSS-PHASE')`, "23503");
 
       await backToOwner(tx);
       await assumeTenant(tx,b);

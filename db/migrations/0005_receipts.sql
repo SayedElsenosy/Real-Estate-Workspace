@@ -3,12 +3,12 @@
 -- The tenant+contract+installment composite reference guards same-company,
 -- same-contract ownership, not merely same-tenant membership.
 
-DO $ BEGIN
+DO $$ BEGIN
   CREATE TYPE public.payment_method AS ENUM ('CASH','BANK_TRANSFER','CHEQUE');
-EXCEPTION WHEN duplicate_object THEN NULL; END $;
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 -- A composite FK must reference a UNIQUE/PRIMARY KEY column combination.
-DO $ BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint
     WHERE conname = 'installments_tenant_contract_id_unique'
@@ -18,7 +18,7 @@ DO $ BEGIN
       ADD CONSTRAINT installments_tenant_contract_id_unique
       UNIQUE (tenant_id, contract_id, id);
   END IF;
-END $;
+END $$;
 
 CREATE TABLE IF NOT EXISTS public.receipts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -58,7 +58,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS receipts_tenant_method_reference_unique
 ALTER TABLE public.receipts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.receipts FORCE ROW LEVEL SECURITY;
 
-DO $ BEGIN
+DO $$ BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
     WHERE schemaname='public' AND tablename='receipts'
@@ -69,7 +69,7 @@ DO $ BEGIN
       USING (tenant_id = (SELECT app.current_tenant_id()))
       WITH CHECK (tenant_id = (SELECT app.current_tenant_id()));
   END IF;
-END $;
+END $$;
 
 DO $$
 DECLARE migration_principal text := current_user;

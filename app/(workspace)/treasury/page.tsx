@@ -10,11 +10,11 @@ export default async function TreasuryPage(){
  const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Africa/Cairo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
  const todayTotal=d.receipts.filter(r=>r.receiptDate===today).reduce((sum,r)=>sum.plus(r.amount),new Decimal(0));
  const unpaidOverdue=d.installments.filter(i=>i.status==="OVERDUE"||(i.status==="PENDING"&&i.dueDate<today)).reduce((sum,i)=>sum.plus(i.amount),new Decimal(0));
- const chequeRecorded=d.receipts.filter(r=>r.method==="CHEQUE").reduce((sum,r)=>sum.plus(r.amount),new Decimal(0));
+ const chequeRecorded=d.receipts.filter(r=>r.method==="CHEQUE"&&r.chequeClearanceStatus==="PENDING").reduce((sum,r)=>sum.plus(r.amount),new Decimal(0));
  return <><PageHeader eyebrow="المالية / TREASURY" title="لوحة الخزينة" description="مؤشرات مبنية على إيصالات وأقساط حقيقية."/>
  <div className="mb-6 grid gap-4 md:grid-cols-3">
  <Card className="p-5"><p>المقبوضات المسجلة اليوم</p><strong>{money(todayTotal.toFixed(2))}</strong></Card>
- <Card className="p-5"><p>الشيكات المسجلة (غير مصنفة التحصيل)</p><strong>{money(chequeRecorded.toFixed(2))}</strong><p className="text-xs text-amber-700">لا تتوفر حالة clearing، لذلك لا يمكن حساب المعلق بدقة.</p></Card>
+ <Card className="p-5"><p>الشيكات المعلقة تحت التحصيل</p><strong>{money(chequeRecorded.toFixed(2))}</strong><p className="text-xs text-amber-700">يعرض فقط الشيكات المسجلة بحالة PENDING؛ الشيكات القديمة غير المصنفة مستبعدة.</p></Card>
  <Card className="p-5"><p>الأقساط غير المدفوعة والمتأخرة</p><strong>{money(unpaidOverdue.toFixed(2))}</strong></Card></div>
  <Card className="overflow-hidden"><Table><TableHeader><TableRow><TableHead>رقم الإيصال</TableHead><TableHead>القيمة</TableHead><TableHead>طريقة الدفع</TableHead><TableHead>رقم العقد</TableHead><TableHead>التاريخ</TableHead></TableRow></TableHeader>
  <TableBody>{d.receipts.map(r=><TableRow key={r.id}><TableCell>{r.id.slice(0,8).toUpperCase()}</TableCell><TableCell>{money(r.amount)}</TableCell><TableCell>{methods[r.method]}</TableCell><TableCell>{r.contractId.slice(0,8).toUpperCase()}</TableCell><TableCell>{r.receiptDate}</TableCell></TableRow>)}</TableBody></Table></Card>

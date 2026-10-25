@@ -1,6 +1,6 @@
 import {
   pgTable, pgEnum, uuid, text, boolean, timestamp, uniqueIndex,
-  numeric, jsonb, unique, index, foreignKey, check,
+  numeric, jsonb, unique, index, foreignKey, check, integer, date,
 } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
@@ -130,4 +130,58 @@ export const bookings = pgTable("bookings", {
   check("bookings_customer_phone_check", sql`length(btrim(${table.customerPhone})) BETWEEN 6 AND 30`),
   check("bookings_expires_after_creation_check",
     sql`${table.expiresAt} IS NULL OR ${table.expiresAt} > ${table.bookingDate}`),
+  uniqueIndex("bookings_tenant_id_id_key").on(table.tenantId, table.id),
+]);
+
+export const contractStatus = pgEnum("contract_status", ["DRAFT","ACTIVE","CANCELLED"]);
+export const installmentStatus = pgEnum("installment_status", ["PENDING","PAID","OVERDUE"]);
+
+export const contracts = pgTable("contracts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(()=>tenants.tenantId,{onDelete:"restrict"}),
+  bookingId: uuid("booking_id").notNull(),
+  totalAmount: numeric("total_amount",{precision:12,scale:2}).notNull(),
+  unitPriceSnapshot: numeric("unit_price_snapshot",{precision:12,scale:2}).notNull(),
+  paymentPlanSnapshot: jsonb("payment_plan_snapshot").$type<{
+    downPaymentPercent:string; installmentCount:number; intervalMonths:number;
+  }>().notNull(),
+  status: contractStatus("status").notNull().default("DRAFT"),
+  signedAt: timestamp("signed_at",{withTimezone:true}),
+  createdAt: timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+}, table=>[
+  unique("contracts_tenant_id_id_key").on(table.tenantId,table.id),
+  unique("contracts_tenant_booking_unique").on(table.tenantId,table.bookingId),
+  foreignKey({name:"contracts_booking_tenant_fk",
+    columns:[table.tenantId,table.bookingId],
+    foreignColumns:[bookings.tenantId,bookings.id],
+  }).onDelete("restrict"),
+  index("contracts_tenant_status_idx").on(table.tenantId,table.status),
+  check("contracts_total_positive",sql`${table.totalAmount} > 0`),
+  check("contracts_snapshot_positive",sql`${table.unitPriceSnapshot} > 0`),
+  check("contracts_active_requires_signed_at_check",
+    sql`${table.status} <> 'ACTIVE' OR ${table.signedAt} IS NOT NULL`),
+  check("contracts_plan_object_check",
+    sql`jsonb_typeof(${table.paymentPlanSnapshot}) = 'object'`),
+]);
+
+export const installments = pgTable("installments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(()=>tenants.tenantId,{onDelete:"restrict"}),
+  contractId: uuid("contract_id").notNull(),
+  sequence: integer("sequence").notNull(),
+  isDownPayment: boolean("is_down_payment").notNull().default(false),
+  dueDate: date("due_date").notNull(),
+  amount: numeric("amount",{precision:12,scale:2}).notNull(),
+  status: installmentStatus("status").notNull().default("PENDING"),
+  createdAt: timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+}, table=>[
+  foreignKey({name:"installments_contract_tenant_fk",
+    columns:[table.tenantId,table.contractId],
+    foreignColumns:[contracts.tenantId,contracts.id],
+  }).onDelete("restrict"),
+  unique("installments_contract_sequence_unique").on(table.tenantId,table.contractId,table.sequence),
+  index("installments_tenant_due_status_idx").on(table.tenantId,table.dueDate,table.status),
+  index("installments_tenant_contract_idx").on(table.tenantId,table.contractId),
+  check("installments_sequence_positive",sql`${table.sequence} > 0`),
+  check("installments_amount_positive",sql`${table.amount} > 0`),
 ]);

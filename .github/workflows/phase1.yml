@@ -81,6 +81,11 @@ jobs:
           exit 1
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ui-preview-screenshots
+          path: test-results/*.png
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: frontend-test-results

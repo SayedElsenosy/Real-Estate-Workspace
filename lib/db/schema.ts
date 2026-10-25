@@ -220,7 +220,7 @@ export const receipts = pgTable("receipts", {
   amount: numeric("amount", {precision:12,scale:2}).notNull(),
   method: paymentMethod("method").notNull(),
   referenceNumber: text("reference_number"),
-  chequeClearanceStatus:chequeClearanceStatusEnum("cheque_clearance_status").notNull().default("CLEARED"),
+  chequeClearanceStatus:chequeClearanceStatusEnum("cheque_clearance_status").default("CLEARED"),
   bouncedReason:text("bounced_reason"),
   bouncedAt:timestamp("bounced_at",{withTimezone:true}),
   receiptDate: date("receipt_date").notNull(),

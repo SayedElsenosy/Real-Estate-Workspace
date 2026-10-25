@@ -3,7 +3,7 @@ import {getDatabase} from "@/lib/db/client";
 import {verifyRequestIdentity} from "@/lib/auth/mock-session";
 import {ChequeError,processChequeStatus} from "@/lib/finance/process-cheque";
 export const runtime="nodejs";
-const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export async function POST(req:Request,{params}:{params:Promise<{id:string}>}){
  const {id}=await params;
  if(!UUID.test(id))return NextResponse.json({error:"معرف غير صالح"},{status:400});

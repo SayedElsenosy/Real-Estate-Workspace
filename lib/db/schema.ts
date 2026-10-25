@@ -253,3 +253,16 @@ export const contractTemplates=pgTable("contract_templates",{
  isActive:boolean("is_active").notNull().default(true),
  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
 },t=>[unique("contract_templates_tenant_id_id_key").on(t.tenantId,t.id),index("contract_templates_tenant_active_idx").on(t.tenantId,t.isActive)]);
+
+export const receiptChequeEvents=pgTable("receipt_cheque_events",{
+ id:uuid("id").primaryKey().defaultRandom(),
+ tenantId:uuid("tenant_id").notNull(),
+ receiptId:uuid("receipt_id").notNull(),
+ newStatus:chequeClearanceStatusEnum("new_status").notNull(),
+ reason:text("reason"),
+ recordedAt:timestamp("recorded_at",{withTimezone:true}).notNull().defaultNow(),
+},t=>[
+ unique("receipt_cheque_one_resolution").on(t.tenantId,t.receiptId),
+ foreignKey({name:"receipt_cheque_events_scope_fk",columns:[t.tenantId,t.receiptId],foreignColumns:[receipts.tenantId,receipts.id]}).onDelete("restrict"),
+ index("receipt_cheque_events_tenant_idx").on(t.tenantId,t.recordedAt),
+]);

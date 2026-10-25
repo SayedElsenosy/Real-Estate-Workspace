@@ -1,4 +1,4 @@
-name: Phases 1-5 Foundation Inventory Booking Contracts Treasury CI
+name: Phases 1-6 Backend and Frontend CI
 on:
   push:
     branches: [main]
@@ -37,3 +37,53 @@ jobs:
       - run: npm run test:payments-concurrency
       - run: npm run typecheck
       - run: npm run build
+
+  frontend-e2e:
+    name: Local mock login → real booking → UI update
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: foundation_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d foundation_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL_ADMIN: postgresql://postgres:postgres@127.0.0.1:5432/foundation_test
+      DATABASE_URL: postgresql://workspace_demo_runtime:demo_only_very_long_password_2026@127.0.0.1:5432/foundation_test
+      DEMO_RUNTIME_PASSWORD: demo_only_very_long_password_2026
+      ENABLE_LOCAL_MOCK_LOGIN: "true"
+      DEMO_SEED_ALLOW: I_ACKNOWLEDGE_DEMO_ONLY
+      MOCK_AUTH_SECRET: ci_local_only_mock_secret_at_least_64_characters_not_for_production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install --no-audit --no-fund
+      - run: npm run db:migrate
+      - run: node scripts/create-demo-runtime.mjs
+      - run: npm run db:seed-demo
+      - run: npx playwright install --with-deps chromium
+      - name: Launch local Next.js
+        run: |
+          npm run dev -- --hostname 127.0.0.1 > /tmp/workspace-next.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -fsS http://127.0.0.1:3000/login > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/workspace-next.log
+          exit 1
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: frontend-test-results
+          path: |
+            test-results/
+            playwright-report/

@@ -13,8 +13,8 @@ type Project={id:string;name:string;location:string;status:string};
 type Phase={id:string;projectId:string;name:string};
 type Building={id:string;phaseId:string;name:string};
 type Unit={id:string;buildingId:string;unitNumber:string;status:"AVAILABLE"|"BOOKED"|"SOLD";area:string;price:string};
-export function InventoryClient({projects,phases,buildings,initialUnits,selectedProjectId,canBook}:{
- projects:Project[];phases:Phase[];buildings:Building[];initialUnits:Unit[];
+export function InventoryClient({projects,phases,buildings,initialUnits,selectedProjectId,canBook,customers}:{
+ projects:Project[];phases:Phase[];buildings:Building[];initialUnits:Unit[];customers:{id:string;fullName:string;phonePrimary:string}[];
  selectedProjectId:string|null;canBook:boolean;
 }){
  const initialProject=projects.some(p=>p.id===selectedProjectId)?selectedProjectId:(projects[0]?.id??"");
@@ -65,7 +65,7 @@ export function InventoryClient({projects,phases,buildings,initialUnits,selected
     </Table>
     {visible.length===0&&<div className="p-14 text-center text-sm text-[#9aaba6]">لا توجد وحدات مطابقة للاختيار الحالي.</div>}
   </Card>
-  <BookingDialog unit={bookingUnit} onClose={()=>setBookingUnit(null)} onSuccess={id=>{
+  <BookingDialog customers={customers} unit={bookingUnit} onClose={()=>setBookingUnit(null)} onSuccess={id=>{
    setUnits(old=>old.map(u=>u.id===id?{...u,status:"BOOKED"}:u));
    setSuccess("تم تأكيد الحجز، وتحديث حالة الوحدة.");
   }}/>

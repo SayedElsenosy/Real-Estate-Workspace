@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Building2, Blocks, CalendarCheck2, FileText, Wallet, LogOut, Layers3, ChevronLeft, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Building2, Blocks, CalendarCheck2, FileText, Wallet, LogOut, Layers3, ChevronLeft, ShieldCheck, UsersRound } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 const links=[
@@ -9,6 +9,7 @@ const links=[
  {href:"/projects",title:"المشروعات",icon:Building2},
  {href:"/inventory",title:"المخزون",icon:Blocks},
  {href:"/bookings",title:"الحجوزات",icon:CalendarCheck2},
+ {href:"/customers",title:"العملاء",icon:UsersRound},
  {href:"/contracts",title:"العقود",icon:FileText},
  {href:"/treasury",title:"الخزينة",icon:Wallet},
 ];

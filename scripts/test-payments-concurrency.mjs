@@ -97,8 +97,8 @@ try {
   const advance=await recordPayment(db,{...payment,installmentId:null,amount:"0.01"});
   assert.equal(advance.installmentStatus,null);
   assert.equal(advance.receipt.installmentId,null);
-  const p2=await owner`SELECT status FROM public.installments WHERE id=${installment2}`;
-  assert.equal(p2[0].status,"OVERDUE");
+  const p2=await owner`SELECT status FROM public.installments WHERE id=${installment3}`;
+  assert.equal(p2[0].status,"PENDING");
 
   const finalRows=await owner`SELECT count(*)::int AS n FROM public.receipts WHERE tenant_id=${a}`;
   assert.equal(finalRows[0].n,3,"one cash + one advance + one bank receipt");

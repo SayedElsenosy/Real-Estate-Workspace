@@ -1,3 +1,4 @@
+import PizZip from "pizzip";
 import { test, expect } from "@playwright/test";
 
 test("local sign-in → inventory → atomic booking → immediate UI update → tenant isolation",async({page})=>{
@@ -126,6 +127,7 @@ test("contract issuance, first installment payment, private DOCX upload and down
  await installment.getByRole("button",{name:"تسجيل دفعة"}).click();
  await page.getByRole("button",{name:"تأكيد الدفع"}).click();
  await expect(page.getByRole("row").filter({hasText:"مدفوع"})).toHaveCount(1);
+ const contractPage=page.url();
  await page.goto("/settings/contracts");
  const sample=await page.request.get("/api/contract-templates/sample");
  expect(sample.ok()).toBeTruthy();
@@ -141,4 +143,14 @@ test("contract issuance, first installment payment, private DOCX upload and down
  await page.getByRole("button",{name:"تحميل العقد (Word)"}).click();
  const received=await download;
  expect(received.suggestedFilename()).toMatch(/contract-.*\.docx/);
+ const contractId=contractPage.split("/").pop()!;
+ const downloaded=await page.request.post("/api/contracts/"+contractId+"/generate-docx");
+ expect(downloaded.status()).toBe(200);
+ const zip=new PizZip(await downloaded.body());
+ const xml=zip.file("word/document.xml")?.asText()||"";
+ expect(xml).toContain("مشتري العقد الآلي");
+ expect(xml).toContain("A-103");
+ expect(xml).not.toContain("{customer_name}");
+ expect(xml).not.toContain("{#installments}");
+
 });

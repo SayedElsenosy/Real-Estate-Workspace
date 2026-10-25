@@ -31,8 +31,7 @@ export async function POST(request: Request) {
   if (Object.keys(values).some(k => !allowed.includes(k)))
     return NextResponse.json({ error: "حقول غير مدعومة أو محاولة تجاوز هوية الشركة" }, { status: 400, headers: noStore });
   const unitId = values.unit_id;
-  if (typeof unitId !== "string" || !UUID.test(unitId) ||
-      false {
+  if (typeof unitId !== "string" || !UUID.test(unitId)) {
     return NextResponse.json({ error: "بيانات الوحدة أو العميل غير صالحة" }, { status: 400, headers: noStore });
   }
   const hasId=typeof values.customer_id==="string" && UUID.test(values.customer_id);

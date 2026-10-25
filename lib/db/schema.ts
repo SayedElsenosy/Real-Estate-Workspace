@@ -1,9 +1,14 @@
-import { pgTable, pgEnum, uuid, text, boolean, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  pgTable, pgEnum, uuid, text, boolean, timestamp, uniqueIndex,
+  numeric, jsonb, unique, index, foreignKey, check,
+} from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 
 export const userRole = pgEnum("app_user_role", ["PLATFORM_OWNER","COMPANY_ADMIN","SALES","ACCOUNTANT"]);
+export const projectStatus = pgEnum("project_status", ["PLANNED","ACTIVE","ON_HOLD","COMPLETED"]);
+export const unitStatus = pgEnum("unit_status", ["AVAILABLE","BOOKED","SOLD"]);
 
-// Requirement: even the company directory uses tenant_id as its own primary key.
+// Even the company directory has tenant_id: the row identifies its own company.
 export const tenants = pgTable("tenants", {
   tenantId: uuid("tenant_id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
@@ -20,4 +25,83 @@ export const users = pgTable("users", {
   role: userRole("role").notNull(),
   externalAuthId: text("external_auth_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-}, table => [uniqueIndex("users_tenant_email_ci_unique").on(table.tenantId, sql`lower(${table.email})`)]);
+}, (table) => [
+  uniqueIndex("users_tenant_email_ci_unique").on(table.tenantId, sql`lower(${table.email})`),
+]);
+
+export const projects = pgTable("projects", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.tenantId, {onDelete: "restrict"}),
+  name: text("name").notNull(),
+  location: text("location").notNull().default(""),
+  status: projectStatus("status").notNull().default("PLANNED"),
+  createdAt: timestamp("created_at", {withTimezone: true}).notNull().defaultNow(),
+}, (table) => [
+  unique("projects_tenant_id_id_key").on(table.tenantId, table.id),
+  index("projects_tenant_status_idx").on(table.tenantId, table.status),
+  check("projects_name_nonempty", sql`length(btrim(${table.name})) > 0`),
+]);
+
+export const phases = pgTable("phases", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.tenantId, {onDelete: "restrict"}),
+  projectId: uuid("project_id").notNull(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", {withTimezone: true}).notNull().defaultNow(),
+}, (table) => [
+  unique("phases_tenant_id_id_key").on(table.tenantId, table.id),
+  unique("phases_project_name_key").on(table.tenantId, table.projectId, table.name),
+  foreignKey({
+    name: "phases_project_tenant_fk",
+    columns: [table.tenantId, table.projectId],
+    foreignColumns: [projects.tenantId, projects.id],
+  }).onDelete("restrict"),
+  index("phases_tenant_project_idx").on(table.tenantId, table.projectId),
+  check("phases_name_nonempty", sql`length(btrim(${table.name})) > 0`),
+]);
+
+export const buildings = pgTable("buildings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.tenantId, {onDelete: "restrict"}),
+  phaseId: uuid("phase_id").notNull(),
+  name: text("name").notNull(),
+  createdAt: timestamp("created_at", {withTimezone: true}).notNull().defaultNow(),
+}, (table) => [
+  unique("buildings_tenant_id_id_key").on(table.tenantId, table.id),
+  unique("buildings_phase_name_key").on(table.tenantId, table.phaseId, table.name),
+  foreignKey({
+    name: "buildings_phase_tenant_fk",
+    columns: [table.tenantId, table.phaseId],
+    foreignColumns: [phases.tenantId, phases.id],
+  }).onDelete("restrict"),
+  index("buildings_tenant_phase_idx").on(table.tenantId, table.phaseId),
+  check("buildings_name_nonempty", sql`length(btrim(${table.name})) > 0`),
+]);
+
+export const units = pgTable("units", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.tenantId, {onDelete: "restrict"}),
+  buildingId: uuid("building_id").notNull(),
+  unitNumber: text("unit_number").notNull(),
+  // Decimal is represented as a string by Drizzle; NEVER convert money to JS Number.
+  area: numeric("area", {precision: 12, scale: 2}).notNull(),
+  price: numeric("price", {precision: 12, scale: 2}).notNull(),
+  status: unitStatus("status").notNull().default("AVAILABLE"),
+  // Null until an actual plan geometry has been reviewed; no invented coordinates.
+  svgCoordinates: jsonb("svg_coordinates").$type<Record<string, unknown> | null>(),
+  createdAt: timestamp("created_at", {withTimezone: true}).notNull().defaultNow(),
+}, (table) => [
+  unique("units_tenant_id_id_key").on(table.tenantId, table.id),
+  unique("units_building_number_key").on(table.tenantId, table.buildingId, table.unitNumber),
+  foreignKey({
+    name: "units_building_tenant_fk",
+    columns: [table.tenantId, table.buildingId],
+    foreignColumns: [buildings.tenantId, buildings.id],
+  }).onDelete("restrict"),
+  index("units_tenant_building_status_idx").on(table.tenantId, table.buildingId, table.status),
+  check("units_unit_number_nonempty", sql`length(btrim(${table.unitNumber})) > 0`),
+  check("units_area_positive", sql`${table.area} > 0`),
+  check("units_price_nonnegative", sql`${table.price} >= 0`),
+  check("units_svg_coordinates_object_check",
+    sql`${table.svgCoordinates} IS NULL OR jsonb_typeof(${table.svgCoordinates}) = 'object'`),
+]);

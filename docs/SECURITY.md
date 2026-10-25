@@ -30,3 +30,15 @@ The GitHub Actions workflow uses an ephemeral PostgreSQL 17 service for migratio
 - Platform administrative APIs, invitation/account provisioning and audit logging
 - Backups, encrypted file storage, rate limiting, structured security logs
 - Dedicated app DB role credentials in Vercel/Netlify secrets
+
+## Stage 2 inventory isolation (2026-10-25)
+
+- Every inventory table has a mandatory `tenant_id` with tenant-scoped indexes.
+- `projects` belongs to its tenant; `phases`, `buildings`, and `units` enforce composite foreign keys `(tenant_id, parent_id)` preventing cross-tenant references even with valid UUIDs.
+- ENABLE + FORCE RLS on projects, phases, buildings, units.
+- Single `FOR ALL` tenant_runtime policy specifies both USING and WITH CHECK bound to `app.current_tenant_id()`.
+- tenant_runtime gets SELECT, INSERT, UPDATE, DELETE on inventory only. Users and tenants remain SELECT-only. Role-level grants do not provide login or verified tenant identity.
+- `units.price` and `units.area` use NUMERIC(12,2); Drizzle returns strings, and monetary calculations must never use JS floating-point numbers.
+- `svg_coordinates` is optional JSON object for later validated geometry; no maps or placeholder geometries inserted.
+- `scripts/test-inventory-rls.mjs` tests CRUD grants, missing tenant_id, read/update/delete isolation, and cross-tenant composite FK rejection in a rollback transaction.
+- No user-facing CRUD API is exposed before a trusted authenticated user/tenant authorization layer exists.

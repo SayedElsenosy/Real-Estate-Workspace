@@ -187,7 +187,11 @@ test("cheque issued against installment bounces and restores OVERDUE",async({pag
  await expect(page.getByText("عميل شيك مرتجع")).toBeVisible();
  await page.getByRole("button",{name:"ارتداد"}).click();
  await page.getByLabel("سبب الارتداد").fill("رصيد غير كاف");
+ const bouncedResponse=page.waitForResponse(r=>r.url().includes("/process-cheque")&&r.request().method()==="POST");
  await page.getByRole("button",{name:"تأكيد الارتداد"}).click();
+ const bounceResult=await bouncedResponse;
+ console.log("bounce result",bounceResult.status(),await bounceResult.text());
+ await expect(bounceResult.ok()).toBeTruthy();
  await expect(page.getByText("عميل شيك مرتجع")).toHaveCount(0);
  await page.goto(contractUrl);
  await expect(page.getByTestId("installment-1")).toContainText("متأخر");

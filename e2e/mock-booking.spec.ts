@@ -5,7 +5,10 @@ test("local sign-in → inventory → atomic booking → immediate UI update →
  await expect(page.getByRole("heading",{name:"الدخول لمساحة العمل"})).toBeVisible();
  await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة الأفق للتطوير"});
  await page.getByLabel("الدور").selectOption("SALES");
+ const responsePromise=page.waitForResponse(r=>r.url().includes("/api/dev/login"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
+ const loginResponse=await responsePromise;
+ console.log("mock login response:",loginResponse.status(),await loginResponse.text());
  await expect(page).toHaveURL(/\/dashboard$/);
  await expect(page.getByRole("heading",{name:"لوحة التحكم"})).toBeVisible();
  await page.getByRole("link",{name:"المخزون",exact:true}).click();
@@ -26,7 +29,10 @@ test("local sign-in → inventory → atomic booking → immediate UI update →
  await page.getByRole("button",{name:"تبديل الحساب"}).click();
  await expect(page).toHaveURL(/\/login$/);
  await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة المدار العقارية"});
+ const responsePromise=page.waitForResponse(r=>r.url().includes("/api/dev/login"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
+ const loginResponse=await responsePromise;
+ console.log("mock login response:",loginResponse.status(),await loginResponse.text());
  await expect(page.getByText("شركة المدار العقارية")).toBeVisible();
  await page.getByRole("link",{name:"الحجوزات",exact:true}).click();
  await expect(page.getByText("عميل الاختبار آمن")).toHaveCount(0);
@@ -38,7 +44,10 @@ test("accountant can see inventory but cannot book",async({page})=>{
  await page.goto("/login");
  await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة المدار العقارية"});
  await page.getByLabel("الدور").selectOption("ACCOUNTANT");
+ const responsePromise=page.waitForResponse(r=>r.url().includes("/api/dev/login"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
+ const loginResponse=await responsePromise;
+ console.log("mock login response:",loginResponse.status(),await loginResponse.text());
  await expect(page).toHaveURL(/\/dashboard$/);
  await page.getByRole("link",{name:"المخزون",exact:true}).click();
  await expect(page.getByTestId("unit-row-A-101")).toContainText("صلاحية العرض فقط");

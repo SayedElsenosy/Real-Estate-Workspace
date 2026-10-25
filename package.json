@@ -14,7 +14,9 @@
     "test:booking-concurrency": "node --import tsx scripts/test-booking-concurrency.mjs",
     "test:installments-math": "node --import tsx scripts/test-installments-math.mjs",
     "test:contracts-transaction": "node --import tsx scripts/test-contracts-transaction.mjs",
-    "test:payments-concurrency": "node --import tsx scripts/test-payments-concurrency.mjs"
+    "test:payments-concurrency": "node --import tsx scripts/test-payments-concurrency.mjs",
+    "db:seed-demo": "node --import tsx scripts/seed-demo.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "next": "16.4.1",
@@ -23,7 +25,13 @@
     "drizzle-orm": "0.45.2",
     "postgres": "^3.4.7",
     "jose": "^6.1.0",
-    "decimal.js": "^10.6.0"
+    "decimal.js": "^10.6.0",
+    "lucide-react": "^0.468.0",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-slot": "^1.2.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@types/node": "^22.16.0",
@@ -33,6 +41,7 @@
     "drizzle-kit": "^0.31.0",
     "tailwindcss": "^4.1.16",
     "typescript": "^5.9.3",
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "@playwright/test": "^1.56.1"
   }
 }

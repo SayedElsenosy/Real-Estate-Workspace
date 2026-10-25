@@ -73,3 +73,14 @@ https://github.com/SayedElsenosy/Real-Estate-Workspace/actions/runs/40227986003/
 - `/customers`: قائمة العملاء مع البحث بالاسم أو الهاتف؛ `/customers/[id]`: Customer 360 للحجوزات والعقود.
 - نافذة حجز المخزون تدعم عميلًا موجودًا أو إضافة عميل جديد. إنشاء العميل والحجز وتحويل الوحدة إلى BOOKED يتم في Transaction واحدة.
 - `bookings.customer_name` و`customer_phone` محفوظان كـSnapshot، و`customer_id` يبقى NULL للحجوزات القديمة حتى مراجعة خطة ربط تاريخية بدون تخمين.
+
+## Phase 9 and Phase 10
+- /bookings: generate a signed contract and installments using POST /api/contracts.
+- /contracts/[id]: view schedule, collected and remaining amounts; pay via POST /api/receipts.
+- /treasury: today's receipts, overdue installments, pending cheques based on stored status.
+- /settings/contracts: upload DOCX templates (max 5 MiB) and get a sample.
+- POST /api/contracts/[id]/generate-docx: stream Word output directly to client.
+- Database migrations 0007, 0008 and 0009 must be deployed to the target database.
+- The Word renderer is stateless and never writes to public/ or local persistent disk.
+- Clearing/bounced cheque workflows and production identity setup remain future work.
+- See docs/PHASE9_10_REPORT.md.

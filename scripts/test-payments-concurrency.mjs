@@ -89,7 +89,7 @@ try {
   assert.equal(bankReceipt.installmentStatus,"PAID");
   await assert.rejects(
     recordPayment(db,{...bankPayment,installmentId:installment3,amount:"333333.33"}),
-    error=>error?.code==="23505",
+    error=>[error?.code,error?.cause?.code].includes("23505"),
   );
   const finalThird=await owner`SELECT status FROM public.installments WHERE id=${installment3}`;
   assert.equal(finalThird[0].status,"PENDING","FAILED insert must roll back status change");

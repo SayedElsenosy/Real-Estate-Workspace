@@ -123,12 +123,15 @@ test("contract issuance, first installment payment, private DOCX upload and down
  await expect(page).toHaveURL(/\/contracts$/);
  await page.getByRole("row").filter({hasText:"مشتري العقد الآلي"}).getByRole("link").click();
  await expect(page.getByRole("heading",{name:/العقد/})).toBeVisible();
+ await page.screenshot({path:"test-results/contract-details.png",fullPage:true});
  const installment=page.getByRole("row").filter({hasText:"تسجيل دفعة"}).first();
  await installment.getByRole("button",{name:"تسجيل دفعة"}).click();
  await page.getByRole("button",{name:"تأكيد الدفع"}).click();
  await expect(page.getByRole("row").filter({hasText:"مدفوع"})).toHaveCount(1);
+ await page.screenshot({path:"test-results/contract-after-payment.png",fullPage:true});
  const contractPage=page.url();
  await page.goto("/settings/contracts");
+ await page.screenshot({path:"test-results/template-management.png",fullPage:true});
  const sample=await page.request.get("/api/contract-templates/sample");
  expect(sample.ok()).toBeTruthy();
  await page.getByLabel("ملف قالب Word").setInputFiles({

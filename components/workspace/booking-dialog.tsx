@@ -28,7 +28,7 @@ export function BookingDialog({unit,onClose,onSuccess,customers}:{unit:UnitForBo
    const result=await response.json();
    if(!response.ok){setError(result.error||"تعذر إتمام الحجز");return;}
    if(result.booking?.status!=="CONFIRMED"){setError("نتيجة الحجز غير متوقعة");return;}
-   onSuccess(unit.id);close();router.refresh();
+   onSuccess(unit.id);setName("");setPhone("");setCustomerId("");onClose();router.refresh();
   }catch{setError("تعذر الاتصال بخدمة الحجز");}finally{setBusy(false);}
  }
  return <Dialog open={unit!==null} onOpenChange={open=>{if(!open)close();}}><DialogContent><DialogHeader><DialogTitle>حجز الوحدة {unit?.unitNumber}</DialogTitle><DialogDescription>اربط الحجز بسجل العميل الحالي أو أنشئ ملف عميل جديد.</DialogDescription></DialogHeader>

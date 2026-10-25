@@ -115,7 +115,10 @@ test("contract issuance, first installment payment, private DOCX upload and down
  await page.getByRole("link",{name:"الحجوزات",exact:true}).click();
  const buyerRow=page.getByRole("row").filter({hasText:"مشتري العقد الآلي"});
  await buyerRow.getByRole("button",{name:"توليد عقد"}).click();
+ const issued=page.waitForResponse(r=>r.url().endsWith("/api/contracts")&&r.request().method()==="POST");
  await page.getByRole("button",{name:"إنشاء العقد"}).click();
+ const issueResponse=await issued;
+ console.log("contract API:",issueResponse.status(),await issueResponse.text());
  await expect(page).toHaveURL(/\/contracts$/);
  await page.getByRole("row").filter({hasText:"مشتري العقد الآلي"}).getByRole("link").click();
  await expect(page.getByRole("heading",{name:/العقد/})).toBeVisible();

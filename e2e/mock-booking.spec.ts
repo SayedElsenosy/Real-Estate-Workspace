@@ -98,3 +98,44 @@ test("SVG floorplan opens booking modal and immediately recolors booked unit",as
  await expect(shape).toHaveAttribute("aria-label",/محجوزة/);
  await page.screenshot({path:"test-results/svg-after-booking.png",fullPage:true});
 });
+
+test("contract issuance, first installment payment, private DOCX upload and download",async({page})=>{
+ await page.goto("/login");
+ await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة الأفق للتطوير"});
+ await page.getByLabel("الدور").selectOption("COMPANY_ADMIN");
+ await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
+ await expect(page).toHaveURL(/\/dashboard$/);
+ await page.getByRole("link",{name:"المخزون",exact:true}).click();
+ const row=page.getByTestId("unit-row-A-103");
+ await row.getByRole("button",{name:"حجز"}).click();
+ await page.getByLabel("اسم العميل").fill("مشتري العقد الآلي");
+ await page.getByLabel("رقم الهاتف").fill("01055551234");
+ await page.getByRole("button",{name:"تأكيد الحجز"}).click();
+ await expect(row).toContainText("محجوزة");
+ await page.getByRole("link",{name:"الحجوزات",exact:true}).click();
+ const buyerRow=page.getByRole("row").filter({hasText:"مشتري العقد الآلي"});
+ await buyerRow.getByRole("button",{name:"توليد عقد"}).click();
+ await page.getByRole("button",{name:"إنشاء العقد"}).click();
+ await expect(page).toHaveURL(/\/contracts$/);
+ await page.getByRole("row").filter({hasText:"مشتري العقد الآلي"}).getByRole("link").click();
+ await expect(page.getByRole("heading",{name:/العقد/})).toBeVisible();
+ const installment=page.getByRole("row").filter({hasText:"تسجيل دفعة"}).first();
+ await installment.getByRole("button",{name:"تسجيل دفعة"}).click();
+ await page.getByRole("button",{name:"تأكيد الدفع"}).click();
+ await expect(page.getByRole("row").filter({hasText:"مدفوع"})).toHaveCount(1);
+ await page.goto("/settings/contracts");
+ const sample=await page.request.get("/api/contract-templates/sample");
+ expect(sample.ok()).toBeTruthy();
+ await page.getByLabel("ملف قالب Word").setInputFiles({
+   name:"sample-contract.docx",
+   mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+   buffer:await sample.body(),
+ });
+ await page.getByRole("button",{name:"رفع القالب"}).click();
+ await expect(page.getByRole("status")).toContainText("تم رفع القالب");
+ await page.goBack();
+ const download=page.waitForEvent("download");
+ await page.getByRole("button",{name:"تحميل العقد (Word)"}).click();
+ const received=await download;
+ expect(received.suggestedFilename()).toMatch(/contract-.*\.docx/);
+});

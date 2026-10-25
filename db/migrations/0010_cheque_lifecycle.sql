@@ -21,7 +21,7 @@ END IF; END $$;
 -- A bounced receipt is retained for audit but must not block a replacement payment.
 DROP INDEX IF EXISTS public.receipts_single_settlement_per_installment_idx;
 CREATE UNIQUE INDEX receipts_single_settlement_per_installment_idx ON public.receipts(tenant_id,installment_id)
- WHERE installment_id IS NOT NULL AND cheque_clearance_status <> 'BOUNCED';
+ WHERE installment_id IS NOT NULL AND cheque_clearance_status IS DISTINCT FROM 'BOUNCED';
 CREATE INDEX IF NOT EXISTS receipts_cheque_queue_idx ON public.receipts(tenant_id,cheque_clearance_status,created_at) WHERE method='CHEQUE';
 GRANT USAGE ON TYPE public.cheque_clearance_status_enum TO tenant_runtime;
 

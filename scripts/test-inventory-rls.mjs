@@ -39,7 +39,7 @@ try {
       await tx`INSERT INTO public.buildings (id,tenant_id,phase_id,name) VALUES
         (${buildingA},${a},${phaseA},'Building A'),(${buildingB},${b},${phaseB},'Building B')`;
       await tx`INSERT INTO public.units (id,tenant_id,building_id,unit_number,area,price,status,svg_coordinates) VALUES
-        (${unitA},${a},${buildingA},'A-101','95.50','2500000.15','AVAILABLE',${JSON.stringify({points:[[0,0],[1,1]]})}::jsonb),
+        (${unitA},${a},${buildingA},'A-101','95.50','2500000.15','AVAILABLE','{"points":[[0,0],[1,1]]}'::jsonb),
         (${unitB},${b},${buildingB},'B-201','107.25','3250000.40','AVAILABLE',NULL)`;
 
       await assumeTenant(tx,a);

@@ -23,6 +23,6 @@ export default async function TreasuryPage(){
  <Card className="p-5"><p>الشيكات المعلقة تحت التحصيل</p><strong>{money(chequeRecorded.toFixed(2))}</strong><p className="text-xs text-amber-700">يعرض فقط الشيكات المسجلة بحالة PENDING؛ الشيكات القديمة غير المصنفة مستبعدة.</p></Card>
  <Card className="p-5"><p>الأقساط غير المدفوعة والمتأخرة</p><strong>{money(unpaidOverdue.toFixed(2))}</strong></Card></div>
  <Card className="overflow-hidden"><Table><TableHeader><TableRow><TableHead>رقم الإيصال</TableHead><TableHead>القيمة</TableHead><TableHead>طريقة الدفع</TableHead><TableHead>رقم العقد</TableHead><TableHead>التاريخ</TableHead></TableRow></TableHeader>
- <TableBody>{d.receipts.map(r=><TableRow key={r.id}><TableCell>{r.id.slice(0,8).toUpperCase()}</TableCell><TableCell>{money(r.amount)}</TableCell><TableCell>{methods[r.method]}</TableCell><TableCell>{r.contractId.slice(0,8).toUpperCase()}</TableCell><TableCell>{r.receiptDate}</TableCell></TableRow>)}</TableBody></Table></Card>
+ <TableBody>{d.receipts.map(r=><TableRow key={r.id}><TableCell>{r.id.slice(0,8).toUpperCase()}</TableCell><TableCell>{money(r.amount)}</TableCell><TableCell>{methods[r.method]}</TableCell><TableCell>{r.contractId.slice(0,8).toUpperCase()}</TableCell><TableCell>{r.receiptDate}</TableCell></TableRow>)}</TableBody></Table></Card><PendingCheques initial={pending}/>
  <p className="mt-4 text-sm text-amber-700">تنبيه: تسجيل إيصال بشيك لا يثبت تحصيل قيمته في البنك. دورة تسوية الشيكات والمرتجعات غير منفذة.</p></>;
 }

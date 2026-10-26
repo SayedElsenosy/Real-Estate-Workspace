@@ -233,6 +233,7 @@ test("admin builds inventory hierarchy, books and cancels, returning unit AVAILA
  await page.getByRole("button",{name:"حفظ الوحدة"}).click();
  await expect(page.getByRole("status")).toContainText("تم حفظ الوحدة");
  await page.goto("/inventory");
+ await page.getByLabel("اختر المشروع").selectOption({label:"مشروع ضمان المخزون"});
  const row=page.getByTestId("unit-row-NEW-201");
  await expect(row).toContainText("متاحة");
  await row.getByRole("button",{name:"حجز"}).click();
@@ -246,6 +247,7 @@ test("admin builds inventory hierarchy, books and cancels, returning unit AVAILA
  await page.getByRole("button",{name:"تأكيد الإلغاء"}).click();
  await expect(bookingRow).toContainText("ملغي");
  await page.goto("/inventory");
+ await page.getByLabel("اختر المشروع").selectOption({label:"مشروع ضمان المخزون"});
  await expect(page.getByTestId("unit-row-NEW-201")).toContainText("متاحة");
 });
 

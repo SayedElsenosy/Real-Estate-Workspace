@@ -27,7 +27,7 @@ export async function processChequeStatus(db:PostgresJsDatabase<typeof schema>,i
    .where(and(eq(contracts.tenantId,input.tenantId),eq(contracts.id,candidate.contractId))).for("update").limit(1);
   if(!contract)throw new ChequeError("NOT_FOUND","العقد غير موجود",404);
   const [receipt]=await tx.select().from(receipts)
-   .where(and(eq(receipts.tenantId,input.tenantId),eq(receipts.id,input.receiptId))).for("update").limit(1);
+   .where(and(eq(receipts.tenantId,input.tenantId),eq(receipts.id,input.receiptId))).limit(1);
   if(!receipt||receipt.method!=="CHEQUE")
    throw new ChequeError("NOT_CHEQUE","هذه العملية متاحة للشيكات فقط",422);
   const [resolved]=await tx.select({id:receiptChequeEvents.id}).from(receiptChequeEvents).where(and(eq(receiptChequeEvents.tenantId,input.tenantId),eq(receiptChequeEvents.receiptId,receipt.id))).limit(1);

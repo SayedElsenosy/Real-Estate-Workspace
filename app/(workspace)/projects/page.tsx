@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/workspace/status-badge";
 export default async function ProjectsPage(){
  const data=await loadWorkspace();
  return <><PageHeader eyebrow="المشروعات / PROJECTS" title="المشروعات العقارية" description="اختر مشروعًا للانتقال إلى مراحله ومبانيه والوحدات المتاحة فيه."/>
+  {data.session.role==="COMPANY_ADMIN"&&<div className="mb-5"><Link href="/inventory/manage" className="inline-flex rounded-xl bg-[#19776f] px-5 py-3 text-sm font-bold text-white">إضافة مخزون جديد</Link></div>}
   <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{data.projects.map((project,i)=>{
     const phaseIds=data.phases.filter(x=>x.projectId===project.id).map(x=>x.id);
     const bIds=data.buildings.filter(x=>phaseIds.includes(x.phaseId)).map(x=>x.id);

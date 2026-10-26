@@ -84,3 +84,14 @@ https://github.com/SayedElsenosy/Real-Estate-Workspace/actions/runs/40227986003/
 - The Word renderer is stateless and never writes to public/ or local persistent disk.
 - Clearing/bounced cheque workflows and production identity setup remain future work.
 - See docs/PHASE9_10_REPORT.md.
+
+## Phase 12 — Hardening Sprint
+- Receipts are strictly append-only: `0011_secure_receipts.sql` revokes UPDATE/DELETE and enforces immutable row triggers. Cheque resolutions are saved in `receipt_cheque_events` instead of updating receipts.
+- Booking cancellation: `POST /api/bookings/[id]/cancel` (COMPANY_ADMIN) cancels CONFIRMED booking and releases BOOKED unit inside one transaction; active contract blocks with HTTP 409.
+- A signed contract atomically marks the associated unit SOLD.
+- `businessDate` in `lib/utils/date.ts` normalizes Cairo calendar dates and month-end installment scheduling.
+- `/inventory/manage`: admin-only create project → phase → building → unit using four validated, RLS-protected POST endpoints. SALES has read-only inventory access.
+- Arabic `loading.tsx`, `error.tsx` and booking cancellation confirmation were added.
+- New tests: `scripts/test-secure-receipts.mjs`, `scripts/test-business-date.mjs`, and Playwright hierarchy/booking-cancel/contract SOLD/role checks.
+- Full implementation report: `docs/PHASE12_REPORT.md`.
+- **Operational safeguard:** Run migrations only with trusted DATABASE_URL_ADMIN on the approved database; never use demo seeds on customer data. Phase 12 is not deployed automatically to persistent Neon.

@@ -22,7 +22,7 @@ const links=[
 const roles:Record<string,string>={PLATFORM_OWNER:"مالك المنصة",COMPANY_ADMIN:"مدير الشركة",SALES:"المبيعات",ACCOUNTANT:"المحاسبة"};
 export function Sidebar({companyName,role}:{companyName:string;role:string}) {
  const pathname=usePathname();
- const t=useTranslations("nav"),common=useTranslations("common"),roles=useTranslations("roles");
+ const t=useTranslations("nav"),common=useTranslations("common"),roles=useTranslations("roles"),ui=useTranslations("ui");
  async function logout(){
    await signOut({redirectTo:"/login"});
  }
@@ -36,7 +36,7 @@ export function Sidebar({companyName,role}:{companyName:string;role:string}) {
      <p className="truncate text-sm font-bold text-[#18483f]">{companyName}</p>
      <p className="mt-1 text-xs text-[#748d88]">{["PLATFORM_OWNER","COMPANY_ADMIN","SALES","ACCOUNTANT"].includes(role)?roles(role as "PLATFORM_OWNER"|"COMPANY_ADMIN"|"SALES"|"ACCOUNTANT"):role}</p>
    </div>
-   <nav aria-label="التنقل الرئيسي" className="flex gap-1 overflow-x-auto px-3 pb-4 md:flex-1 md:flex-col md:overflow-visible">
+   <nav aria-label={ui("mainNavigation")} className="flex min-h-0 gap-1 overflow-x-auto px-3 pb-4 md:flex-1 md:flex-col md:overflow-x-hidden md:overflow-y-auto">
      {(role==="PLATFORM_OWNER"?[{href:"/admin/tenants",title:"tenants",icon:Building2}]:links.filter(link=>!["/settings/users","/settings/audit"].includes(link.href) || role==="COMPANY_ADMIN")).map(({href,title,icon:Icon})=>{
        const selected=pathname===href;
        return <Link key={href} href={href} className={cn("flex min-w-max items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors md:w-full",selected?"bg-[#e7f3ef] text-[#13796d]":"text-[#667d78] hover:bg-[#f2f7f5] hover:text-[#163d37]")}>

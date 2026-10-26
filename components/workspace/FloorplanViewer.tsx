@@ -1,4 +1,5 @@
 "use client";
+import {useTranslations} from "next-intl";
 
 import { useState } from "react";
 import { money } from "@/lib/utils";
@@ -30,24 +31,26 @@ const fallbackShapes:Shape[]=[
  {points:"355,270 625,270 625,440 355,440",centerX:490,centerY:355},
 ];
 const fill={AVAILABLE:"#6bca93",BOOKED:"#efab62",SOLD:"#a9b2b8"} as const;
-const statusName={AVAILABLE:"متاحة",BOOKED:"محجوزة",SOLD:"مباعة"};
+
 export function FloorplanViewer({units,canBook,onBook}:{units:FloorplanUnit[];canBook:boolean;onBook:(unit:FloorplanUnit)=>void}){
+ const t=useTranslations("ui");
+ const statusName={AVAILABLE:t("planAvailable"),BOOKED:t("planBooked"),SOLD:t("planSold")};
  const [hover,setHover]=useState<string|null>(null);
  // Fallback layout only for the four demo units; real maps MUST use stored coordinates.
  const demo=units.length<=4 && units.every(u=>u.svgCoordinates===null);
  const mapped=units.map((unit,i)=>({unit,shape:shapeOf(unit.svgCoordinates)??(demo?fallbackShapes[i]??null:null)})).filter((x):x is {unit:FloorplanUnit;shape:Shape}=>x.shape!==null);
  const active=mapped.find(x=>x.unit.id===hover);
- return <section aria-label="المخطط التفاعلي" className="p-5 sm:p-7">
+ return <section aria-label={t("planInteractive")} className="p-5 sm:p-7">
   <div className="mb-5 flex flex-wrap items-center gap-4 text-xs">
    {(["AVAILABLE","BOOKED","SOLD"] as const).map(s=><div key={s} className="flex items-center gap-2"><span className="size-3 rounded" style={{backgroundColor:fill[s]}}/>{statusName[s]}</div>)}
-   {demo&&<span className="mr-auto text-amber-700">مخطط توضيحي لأربع وحدات — ليس مخططًا هندسيًا معتمدًا</span>}
+   {demo&&<span className="mr-auto text-amber-700">{t("planDemo")}</span>}
   </div>
   <div className="relative mx-auto max-w-[800px]">
-   <svg aria-label="مخطط وحدات المبنى" viewBox="0 0 685 515" xmlns="http://www.w3.org/2000/svg" className="w-full rounded-2xl border border-[#e2eae7] bg-[#f8fbf9]">
+   <svg aria-label={t("planDiagram")} viewBox="0 0 685 515" xmlns="http://www.w3.org/2000/svg" className="w-full rounded-2xl border border-[#e2eae7] bg-[#f8fbf9]">
     <rect x="24" y="30" width="637" height="440" rx="12" fill="#e9efed" stroke="#bbcfc9" strokeWidth="3"/>
     <path d="M342 35 V468" stroke="#f8fbf9" strokeWidth="18"/>
     {mapped.map(({unit,shape})=><g key={unit.id} data-testid={`floorplan-unit-${unit.unitNumber}`}
-     role="button" aria-label={`الوحدة ${unit.unitNumber} - ${statusName[unit.status]}`}
+     role="button" aria-label={t("unitWithNumber",{number:unit.unitNumber})+" - "+statusName[unit.status]}
      aria-disabled={unit.status!=="AVAILABLE"||!canBook}
      tabIndex={unit.status==="AVAILABLE"&&canBook?0:-1}
      onMouseEnter={()=>setHover(unit.id)} onMouseLeave={()=>setHover(null)}
@@ -59,16 +62,16 @@ export function FloorplanViewer({units,canBook,onBook}:{units:FloorplanUnit[];ca
      <text x={shape.centerX} y={shape.centerY-2} textAnchor="middle" fontSize="20" fontWeight="bold" fill="#183a36" pointerEvents="none">{unit.unitNumber}</text>
      <text x={shape.centerX} y={shape.centerY+24} textAnchor="middle" fontSize="13" fill="#234e47" pointerEvents="none">{statusName[unit.status]}</text>
     </g>)}
-    <text x="342" y="495" textAnchor="middle" fontSize="13" fill="#738882">مدخل المبنى</text>
+    <text x="342" y="495" textAnchor="middle" fontSize="13" fill="#738882">{t("planEntrance")}</text>
    </svg>
    {active&&<div role="tooltip" className="pointer-events-none absolute bottom-4 left-4 z-10 rounded-xl border border-[#deebe6] bg-white/95 p-4 text-sm shadow-xl">
-      <strong>الوحدة {active.unit.unitNumber}</strong>
-      <p className="mt-1 text-[#6f8981]">المساحة: {active.unit.area} م²</p>
+      <strong>{t("unitWithNumber",{number:active.unit.unitNumber})}</strong>
+      <p className="mt-1 text-[#6f8981]">{t("planArea",{area:active.unit.area})}</p>
       <p className="mt-1 text-[#176f65]">{money(active.unit.price)}</p>
       <p className="mt-1 text-[#6f8981]">{statusName[active.unit.status]}</p>
    </div>}
   </div>
-  {!mapped.length&&<p className="py-10 text-center text-sm text-[#879a95]">لا توجد إحداثيات SVG معتمدة للوحدات في هذا المبنى.</p>}
-  {mapped.length<units.length&&<p className="pt-3 text-xs text-amber-700">بعض الوحدات لا تحتوي على إحداثيات صحيحة؛ يمكن عرضها في الجدول.</p>}
+  {!mapped.length&&<p className="py-10 text-center text-sm text-[#879a95]">{t("planMissing")}</p>}
+  {mapped.length<units.length&&<p className="pt-3 text-xs text-amber-700">{t("planPartial")}</p>}
  </section>;
 }

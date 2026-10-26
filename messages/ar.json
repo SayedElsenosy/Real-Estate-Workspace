@@ -418,6 +418,24 @@
     "inviteCompleteError": "تعذر إكمال الدعوة",
     "inviteLogin": "انتقل لتسجيل الدخول",
     "fullName": "الاسم بالكامل",
-    "entityProjects": "المشروعات"
+    "entityProjects": "المشروعات",
+    "planInteractive": "المخطط التفاعلي",
+    "planDemo": "مخطط توضيحي لأربع وحدات — ليس مخططًا هندسيًا معتمدًا",
+    "planDiagram": "مخطط وحدات المبنى",
+    "planEntrance": "مدخل المبنى",
+    "planArea": "المساحة: {area} م²",
+    "planMissing": "لا توجد إحداثيات SVG معتمدة للوحدات في هذا المبنى.",
+    "planPartial": "بعض الوحدات لا تحتوي على إحداثيات صحيحة؛ يمكن عرضها في الجدول.",
+    "planAvailable": "متاحة",
+    "planBooked": "محجوزة",
+    "planSold": "مباعة",
+    "mainNavigation": "التنقل الرئيسي",
+    "auditPhases": "المراحل",
+    "auditBuildings": "المباني",
+    "auditCustomers": "العملاء",
+    "auditInstallments": "الأقساط",
+    "auditChequeEvents": "تسوية الشيكات",
+    "auditTemplates": "قوالب العقود",
+    "networkFailure": "تعذر الاتصال بالخادم"
   }
 }

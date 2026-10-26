@@ -30,6 +30,16 @@ export default async function AuditPage({searchParams}:{searchParams:Promise<{pa
   return {total:countRows[0]?.total??0,entries};
  },session.id);
  const {t,locale}=await getServerI18n();
+ const actions:Record<string,string>={
+  INSERT:t("ui.auditInsert"),UPDATE:t("ui.auditUpdate"),DELETE:t("ui.auditDelete")
+ };
+ const entities:Record<string,string>={
+  projects:t("ui.auditProjects"),phases:t("ui.auditPhases"),buildings:t("ui.auditBuildings"),
+  units:t("ui.auditUnits"),customers:t("ui.auditCustomers"),bookings:t("ui.auditBookings"),
+  contracts:t("ui.auditContracts"),installments:t("ui.auditInstallments"),
+  receipts:t("ui.auditReceipts"),receipt_cheque_events:t("ui.auditChequeEvents"),
+  contract_templates:t("ui.auditTemplates")
+ };
  return <><PageHeader eyebrow="SECURITY / AUDIT" title={t("audit.title")}
    description={t("audit.description")}/>
    <div className="mb-5"><TableSearch path="/settings/audit" search={search} placeholder={t("audit.search")}/></div>
@@ -38,8 +48,8 @@ export default async function AuditPage({searchParams}:{searchParams:Promise<{pa
       {[t("audit.date"),t("audit.actor"),t("audit.action"),t("audit.entity"),t("audit.change")].map(h=><th className="p-4 text-start" key={h}>{h}</th>)}
     </tr></thead><tbody>{result.entries.map(a=><tr className="border-b" key={a.id}>
       <td className="p-4 whitespace-nowrap" dir="ltr">{new Date(a.created_at).toLocaleString(locale==="ar"?"ar-EG":"en-US")}</td>
-      <td className="p-4">{a.user_name??t("audit.system")}</td><td className="p-4">{a.action}</td>
-      <td className="p-4"><strong>{a.entity_type}</strong><p className="text-xs text-slate-500" dir="ltr">{a.entity_id.slice(0,8)}</p></td>
+      <td className="p-4">{a.user_name??t("audit.system")}</td><td className="p-4">{actions[a.action]??a.action}</td>
+      <td className="p-4"><strong>{entities[a.entity_type]??a.entity_type}</strong><p className="text-xs text-slate-500" dir="ltr">{a.entity_id.slice(0,8)}</p></td>
       <td className="p-4"><details><summary className="cursor-pointer text-teal-700">{t("audit.details")}</summary>
         <pre dir="ltr" className="mt-2 max-h-64 max-w-[360px] overflow-auto rounded-lg bg-slate-100 p-2 text-xs text-slate-900">
           {JSON.stringify({old:a.old_values,new:a.new_values},null,2)}

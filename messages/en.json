@@ -418,6 +418,24 @@
     "inviteCompleteError": "Could not complete invitation",
     "inviteLogin": "Go to sign in",
     "fullName": "Full name",
-    "entityProjects": "Projects"
+    "entityProjects": "Projects",
+    "planInteractive": "Interactive floorplan",
+    "planDemo": "Illustrative four-unit layout, not an approved architectural plan",
+    "planDiagram": "Building floorplan",
+    "planEntrance": "Building entrance",
+    "planArea": "Area: {area} m²",
+    "planMissing": "No approved SVG coordinates for units in this building.",
+    "planPartial": "Some units lack valid coordinates; use the table to view them.",
+    "planAvailable": "Available",
+    "planBooked": "Booked",
+    "planSold": "Sold",
+    "mainNavigation": "Main navigation",
+    "auditPhases": "Phases",
+    "auditBuildings": "Buildings",
+    "auditCustomers": "Customers",
+    "auditInstallments": "Installments",
+    "auditChequeEvents": "Cheque settlement events",
+    "auditTemplates": "Contract templates",
+    "networkFailure": "Unable to connect to the server"
   }
 }

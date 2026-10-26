@@ -22,7 +22,7 @@ export function InventoryCreateForms({initialProjects,initialPhases,initialBuild
    if(kind==="project"){setProjects(p=>[...p,item]);setProjectId(item.id);setPhaseId("");setBuildingId("");}
    if(kind==="phase"){setPhases(p=>[...p,{...item,projectId}]);setPhaseId(item.id);setBuildingId("");}
    if(kind==="building"){setBuildings(p=>[...p,{...item,phaseId}]);setBuildingId(item.id);}
-   setMessage("تم حفظ "+({project:"المشروع",phase:"المرحلة",building:"المبنى",unit:"الوحدة"}[kind])+" بنجاح");
+   setMessage(t("saved",{entity:({project:ui("project"),phase:ui("phase"),building:ui("building"),unit:t("unit")})[kind]}));
    router.refresh();
   }catch(e){setMessage(e instanceof Error?e.message:t("saveError"));}finally{setBusy("");}
  }

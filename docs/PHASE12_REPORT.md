@@ -39,3 +39,20 @@ Implemented on the independent Real-Estate-Workspace repository `main`; not rela
 - `e2e/mock-booking.spec.ts` verifies inventory creation, booking cancellation and unit AVAILABLE, forbids sales writes, confirms signed contract SOLD and cancellation HTTP 409.
 - Existing foundation tests cover RLS, concurrency and contract rollback. GitHub Actions artifacts capture browser screenshots.
 - **Deployment note:** Migration 0011 must be executed by authorized migration principal after 0001–0010. Never run tests or seed scripts against customer/production databases.
+
+## 2026-10-26 independent audit and additional hardening
+
+The five requested Phase 12 feature groups were already present on `main` before this audit. The audit found and fixed an **unsafe migration-replay edge case**: after a cheque bounces, a new receipt can settle the same installment, but replaying the legacy stage 5/10 uniqueness index would have blocked that valid replacement. Both `0005_receipts.sql` and `0010_cheque_lifecycle.sql` now skip creating the legacy index when the stage 11 `receipt_cheque_events` table exists. The stage 11 event-aware INSERT guard remains authoritative.
+
+Test additions:
+- Browser scenario now re-pays a bounced installment using a new CASH receipt without modifying the bounced receipt.
+- CI E2E job replays all migrations **after** the browser cheque-repayment scenario, catching index regressions.
+- `scripts/test-append-only-records.mjs` performs actual UPDATE and DELETE attempts on existing receipts and cheque-resolution events and expects the immutable trigger to reject each action.
+- Browser test verifies SALES cannot call the administrator-only cancellation API.
+- `scripts/test-business-date.mjs` now tests offset-aware timestamps and rejects timezone-ambiguous / invalid dates; `businessDate` enforces these inputs.
+- Workspace error page no longer claims that a failed render necessarily rolled back a successful mutation.
+
+### Verification boundary
+The last observed Phase 12-era **green workflow run** is [40246736509](https://github.com/SayedElsenosy/Real-Estate-Workspace/actions/runs/40246736509), at the earlier `0011_secure_receipts.sql` commit. Later runs (including all commits in this audit) show both jobs failing **before any step executes**, with no runner allocated and no logs; therefore no green verification of the new test suite is claimed. This is an Actions execution blocker, not a reported failing assertion or SQL traceback. Re-run the latest workflow after GitHub Actions runner access is restored and inspect the first actionable failure if any.
+
+Read-only Neon inspection of `real_estate_workspace` found `contract_templates` and `contract_template_files` present, but `receipt_cheque_events` absent. Thus **do not assume the append-only cheque event schema and the Phase 12 migration have been applied to persistent Neon**. This audit did not change persistent Neon data/schema; apply the authorized migrations in a controlled deployment and verify permissions, RLS and trigger presence before enabling production traffic.

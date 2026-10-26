@@ -25,7 +25,7 @@ export function Sidebar({companyName,role}:{companyName:string;role:string}) {
  return <aside className="flex w-full flex-col border-b border-[#e4eae8] bg-white md:sticky md:top-0 md:h-screen md:w-[255px] md:shrink-0 md:border-b-0 md:border-l">
    <div className="flex items-center gap-3 px-6 py-6">
      <div className="flex size-11 items-center justify-center rounded-2xl bg-[#19776f] text-white shadow-lg shadow-teal-800/10"><Layers3 className="size-6"/></div>
-     <div><span className="block text-[17px] font-black tracking-wide text-[#173b37]">[Project Name]</span><span className="text-xs text-[#98aba7]">Developer Workspace</span></div>
+     <div><span className="block text-[17px] font-black tracking-wide text-[#173b37]">BUNYRA</span><span className="text-xs text-[#98aba7]">ERP & CRM</span></div>
    </div>
    <div className="mx-4 mb-5 rounded-2xl border border-[#dfeae7] bg-[#f5faf8] p-4">
      <div className="mb-2 flex items-center gap-2 text-xs text-[#6f9790]"><ShieldCheck className="size-4"/> مساحة الشركة</div>

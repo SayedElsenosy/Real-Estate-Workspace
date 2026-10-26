@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 export const metadata: Metadata={
- title:"[Project Name] | Real Estate Workspace",
+ title:"BUNYRA | Real Estate ERP & CRM",
  description:"منصة إدارة المشروعات العقارية والمخزون والحجوزات والعقود والمقبوضات",
 };
 export default function RootLayout({children}:Readonly<{children:React.ReactNode}>){

@@ -38,3 +38,32 @@ export async function loadWorkspace() {
   });
   return {session,...data};
 }
+ 
+/** Lightweight dashboard read: database aggregations, always scoped to the verified tenant via RLS. */
+export async function getDashboardStats() {
+  const session = await getVerifiedWorkspaceSession();
+  const data = await withTenantTransaction(session.tenantId, async tx => {
+    const [activeContractsRows, availableUnitsRows, projectCountRows, bookingCountRows, receiptCountRows, featuredProjects] = await Promise.all([
+      tx.select({
+        totalSales: sql<string>`COALESCE(SUM(${contracts.totalAmount}), 0)::text`,
+        count: sql<number>`COUNT(*)::int`,
+      }).from(contracts).where(eq(contracts.status, "ACTIVE")),
+      tx.select({ count: sql<number>`COUNT(*)::int` }).from(units).where(eq(units.status, "AVAILABLE")),
+      tx.select({ count: sql<number>`COUNT(*)::int` }).from(projects),
+      tx.select({ count: sql<number>`COUNT(*)::int` }).from(bookings),
+      tx.select({ count: sql<number>`COUNT(*)::int` }).from(receipts),
+      tx.select({ id: projects.id, name: projects.name, location: projects.location, status: projects.status })
+        .from(projects).orderBy(projects.name).limit(4),
+    ]);
+    return {
+      totalSales: activeContractsRows[0]?.totalSales ?? "0",
+      activeContracts: activeContractsRows[0]?.count ?? 0,
+      availableUnits: availableUnitsRows[0]?.count ?? 0,
+      projectsCount: projectCountRows[0]?.count ?? 0,
+      bookingsCount: bookingCountRows[0]?.count ?? 0,
+      receiptsCount: receiptCountRows[0]?.count ?? 0,
+      featuredProjects,
+    };
+  });
+  return { session, ...data };
+}

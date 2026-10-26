@@ -1,0 +1,2 @@
+import {LoaderCircle} from "lucide-react";
+export default function WorkspaceLoading(){return <section role="status" aria-live="polite" className="flex min-h-[55vh] flex-col items-center justify-center gap-4 rounded-2xl bg-white/80 p-10 text-[#17766c]"><LoaderCircle className="size-10 animate-spin"/><h2 className="text-xl font-bold">جارٍ تحميل بيانات مساحة العمل</h2><p className="text-sm text-slate-500">نجهز البيانات بأمان من قاعدة الشركة...</p></section>;}

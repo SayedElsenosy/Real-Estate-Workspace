@@ -84,6 +84,8 @@ jobs:
       - run: npm run test:e2e
       - name: Replay migrations after bounced-cheque settlement E2E
         run: npm run db:migrate
+      - name: Verify real receipt and cheque-event immutability
+        run: node scripts/test-append-only-records.mjs
       - uses: actions/upload-artifact@v4
         if: success()
         with:

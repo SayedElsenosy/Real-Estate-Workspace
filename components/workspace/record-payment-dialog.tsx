@@ -1,5 +1,5 @@
-import {businessDate} from "@/lib/utils/date";
 "use client";
+import {businessDate} from "@/lib/utils/date";
 import {useState} from "react";import {useRouter} from "next/navigation";import {Button} from "@/components/ui/button";import {Input} from "@/components/ui/input";import {Dialog,DialogContent,DialogHeader,DialogTitle} from "@/components/ui/dialog";
 export function RecordPaymentDialog({contractId,installmentId,amount,onPaid}:{contractId:string;installmentId:string;amount:string;onPaid?:()=>void}){
  const [open,setOpen]=useState(false),[method,setMethod]=useState("CASH"),[reference,setReference]=useState(""),[busy,setBusy]=useState(false),[error,setError]=useState("");const router=useRouter();

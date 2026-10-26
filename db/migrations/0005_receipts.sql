@@ -49,13 +49,13 @@ CREATE INDEX IF NOT EXISTS receipts_tenant_installment_idx
 -- Stage 11 replaces this index with an append-only, event-aware INSERT guard.
 -- Never recreate the legacy index during a migration replay after bounced
 -- cheques have been followed by valid replacement receipts.
-DO $ BEGIN
+DO $legacy_index_guard$ BEGIN
   IF to_regclass('public.receipt_cheque_events') IS NULL THEN
     CREATE UNIQUE INDEX IF NOT EXISTS receipts_single_settlement_per_installment_idx
       ON public.receipts (tenant_id, installment_id)
       WHERE installment_id IS NOT NULL;
   END IF;
-END $;
+END $legacy_index_guard$;
 
 -- Avoid duplicate non-cash instrument references within the same tenant/method.
 CREATE UNIQUE INDEX IF NOT EXISTS receipts_tenant_method_reference_unique

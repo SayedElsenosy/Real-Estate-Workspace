@@ -29,6 +29,7 @@ jobs:
           node-version: "22"
       - run: npm install --no-audit --no-fund
       - run: npm run db:migrate
+      - run: node scripts/test-secure-receipts.mjs
       - run: npm run test:rls
       - run: npm run test:inventory-rls
       - run: npm run test:booking-concurrency

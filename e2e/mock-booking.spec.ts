@@ -201,3 +201,52 @@ test("cheque issued against installment bounces and restores OVERDUE",async({pag
  await page.goto("/reports/aging");
  await expect(page.getByRole("heading",{name:"تقرير أعمار المديونيات"})).toBeVisible();
 });
+
+test("admin builds inventory hierarchy, books and cancels, returning unit AVAILABLE",async({page})=>{
+ await page.goto("/login");
+ await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة الأفق للتطوير"});
+ await page.getByLabel("الدور").selectOption("COMPANY_ADMIN");
+ await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
+ await expect(page).toHaveURL(/\/dashboard$/);
+ await page.goto("/inventory/manage");
+ await page.getByLabel("اسم المشروع").fill("مشروع ضمان المخزون");
+ await page.getByLabel("موقع المشروع").fill("القاهرة الجديدة");
+ await page.getByRole("button",{name:"حفظ المشروع"}).click();
+ await expect(page.getByRole("status")).toContainText("تم حفظ المشروع");
+ await page.getByLabel("اسم المرحلة").fill("المرحلة التجريبية");
+ await page.getByRole("button",{name:"حفظ المرحلة"}).click();
+ await expect(page.getByRole("status")).toContainText("تم حفظ المرحلة");
+ await page.getByLabel("اسم المبنى").fill("المبنى التجريبي");
+ await page.getByRole("button",{name:"حفظ المبنى"}).click();
+ await expect(page.getByRole("status")).toContainText("تم حفظ المبنى");
+ await page.getByLabel("رقم الوحدة").fill("NEW-201");
+ await page.getByLabel("المساحة").fill("105.50");
+ await page.getByLabel("سعر الوحدة").fill("950000.25");
+ await page.getByRole("button",{name:"حفظ الوحدة"}).click();
+ await expect(page.getByRole("status")).toContainText("تم حفظ الوحدة");
+ await page.goto("/inventory");
+ const row=page.getByTestId("unit-row-NEW-201");
+ await expect(row).toContainText("متاحة");
+ await row.getByRole("button",{name:"حجز"}).click();
+ await page.getByLabel("اسم العميل").fill("عميل دورة الإلغاء");
+ await page.getByLabel("رقم الهاتف").fill("01001020304");
+ await page.getByRole("button",{name:"تأكيد الحجز"}).click();
+ await expect(row).toContainText("محجوزة");
+ await page.goto("/bookings");
+ const bookingRow=page.getByRole("row").filter({hasText:"عميل دورة الإلغاء"});
+ await bookingRow.getByRole("button",{name:"إلغاء حجز"}).click();
+ await page.getByRole("button",{name:"تأكيد الإلغاء"}).click();
+ await expect(bookingRow).toContainText("ملغي");
+ await page.goto("/inventory");
+ await expect(page.getByTestId("unit-row-NEW-201")).toContainText("متاحة");
+});
+
+test("sales cannot create inventory over the API",async({page})=>{
+ await page.goto("/login");
+ await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة المدار العقارية"});
+ await page.getByLabel("الدور").selectOption("SALES");
+ await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
+ await expect(page).toHaveURL(/\/dashboard$/);
+ const result=await page.request.post("/api/projects",{data:{name:"غير مصرح",location:"ممنوع"}});
+ expect(result.status()).toBe(403);
+});

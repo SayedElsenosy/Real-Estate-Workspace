@@ -1,0 +1,1 @@
+import {postInventory} from "@/lib/inventory/api";export const runtime="nodejs";export async function POST(request:Request){return postInventory(request,"building");}

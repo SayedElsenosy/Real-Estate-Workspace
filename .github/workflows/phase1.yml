@@ -27,12 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm install --no-audit --no-fund
-      - name: Export npm lockfile for review
-        run: |
-          echo BEGIN_PACKAGE_LOCK_BASE64
-          base64 -w 120 package-lock.json
-          echo END_PACKAGE_LOCK_BASE64
+      - run: npm ci --no-audit --no-fund
       - run: npm run db:migrate
       - run: node scripts/test-secure-receipts.mjs
       - run: node scripts/test-auth-rls.mjs
@@ -78,7 +73,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npm run db:migrate
       - run: node scripts/create-demo-runtime.mjs
       - run: npm run auth:create-runtime

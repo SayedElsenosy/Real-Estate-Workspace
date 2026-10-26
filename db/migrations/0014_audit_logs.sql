@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS public.audit_logs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id uuid NOT NULL REFERENCES public.tenants(tenant_id) ON DELETE RESTRICT,
-  user_id uuid REFERENCES public.users(id) ON DELETE SET NULL,
+  user_id uuid, -- historical actor identifier; never mutate old audit rows when users are removed
   action text NOT NULL CHECK (action IN ('INSERT','UPDATE','DELETE')),
   entity_type text NOT NULL,
   entity_id uuid NOT NULL,
@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     OR (action='DELETE' AND old_values IS NOT NULL AND new_values IS NULL)
   )
 );
+ALTER TABLE public.audit_logs DROP CONSTRAINT IF EXISTS audit_logs_user_id_fkey;
 CREATE INDEX IF NOT EXISTS audit_logs_tenant_created_idx
   ON public.audit_logs(tenant_id,created_at DESC,id DESC);
 CREATE INDEX IF NOT EXISTS audit_logs_tenant_entity_idx

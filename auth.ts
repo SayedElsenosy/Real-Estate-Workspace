@@ -28,7 +28,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => ({
    if (!token.sub) return null;
    // Revalidate on EVERY server session read; never accept client session.update claims.
    const row=await currentAuthUser(token.sub);
-   if (!row || !row.user.isActive || !row.user.passwordHash || !row.user.externalAuthId ||
+   if (!row || !row.tenantActive || !row.user.isActive || !row.user.passwordHash || !row.user.externalAuthId ||
     row.user.authVersion!==token.authVersion || row.user.tenantId!==token.tenantId ||
     row.user.role!==token.role || row.user.externalAuthId!==token.externalAuthId) return null;
    token.companyName=row.companyName; token.name=row.user.name; token.email=row.user.email;

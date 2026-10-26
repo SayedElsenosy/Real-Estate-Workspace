@@ -14,6 +14,7 @@ export const tenants = pgTable("tenants", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   isPlatformTenant: boolean("is_platform_tenant").notNull().default(false),
+  isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -270,3 +271,16 @@ export const receiptChequeEvents=pgTable("receipt_cheque_events",{
  foreignKey({name:"receipt_cheque_events_scope_fk",columns:[t.tenantId,t.receiptId],foreignColumns:[receipts.tenantId,receipts.id]}).onDelete("restrict"),
  index("receipt_cheque_events_tenant_idx").on(t.tenantId,t.recordedAt),
 ]);
+
+export const invitations = pgTable("invitations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").notNull().references(() => tenants.tenantId),
+  email: text("email").notNull(),
+  role: userRole("role").notNull(),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", {withTimezone:true}).notNull(),
+  usedAt: timestamp("used_at", {withTimezone:true}),
+  revokedAt: timestamp("revoked_at", {withTimezone:true}),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at", {withTimezone:true}).notNull().defaultNow(),
+});

@@ -15,8 +15,9 @@ const links=[
  {href:"/treasury",title:"الخزينة",icon:Wallet},
  {href:"/reports/aging",title:"أعمار المديونيات",icon:ChartNoAxesCombined},
  {href:"/settings/contracts",title:"قوالب Word",icon:Settings2},
+ {href:"/settings/users",title:"إدارة الموظفين",icon:UsersRound},
 ];
-const roles:Record<string,string>={COMPANY_ADMIN:"مدير الشركة",SALES:"المبيعات",ACCOUNTANT:"المحاسبة"};
+const roles:Record<string,string>={PLATFORM_OWNER:"مالك المنصة",COMPANY_ADMIN:"مدير الشركة",SALES:"المبيعات",ACCOUNTANT:"المحاسبة"};
 export function Sidebar({companyName,role}:{companyName:string;role:string}) {
  const pathname=usePathname();
  async function logout(){
@@ -33,7 +34,7 @@ export function Sidebar({companyName,role}:{companyName:string;role:string}) {
      <p className="mt-1 text-xs text-[#748d88]">{roles[role]??role}</p>
    </div>
    <nav aria-label="التنقل الرئيسي" className="flex gap-1 overflow-x-auto px-3 pb-4 md:flex-1 md:flex-col md:overflow-visible">
-     {links.map(({href,title,icon:Icon})=>{
+     {(role==="PLATFORM_OWNER"?[{href:"/admin/tenants",title:"إدارة الشركات",icon:Building2}]:links.filter(link=>link.href!=="/settings/users" || role==="COMPANY_ADMIN")).map(({href,title,icon:Icon})=>{
        const selected=pathname===href;
        return <Link key={href} href={href} className={cn("flex min-w-max items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors md:w-full",selected?"bg-[#e7f3ef] text-[#13796d]":"text-[#667d78] hover:bg-[#f2f7f5] hover:text-[#163d37]")}>
          <Icon className="size-[19px]"/><span>{title}</span>{selected&&<ChevronLeft className="mr-auto hidden size-4 md:block"/>}

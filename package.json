@@ -20,7 +20,8 @@
     "db:create-demo-runtime": "node --env-file-if-exists=.env.local scripts/create-demo-runtime.mjs",
     "auth:create-admin": "node --env-file-if-exists=.env.local --import tsx scripts/create-admin.ts",
     "auth:create-runtime": "node --env-file-if-exists=.env.local --import tsx scripts/create-auth-runtime.ts",
-    "test:auth-rls": "node scripts/test-auth-rls.mjs"
+    "test:auth-rls": "node scripts/test-auth-rls.mjs",
+    "auth:create-platform-owner": "node --env-file-if-exists=.env.local --import tsx scripts/create-platform-owner.ts"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",

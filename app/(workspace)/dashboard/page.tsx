@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getVerifiedWorkspaceSession } from "@/lib/workspace/server-data";
 import { Building2, Blocks, BadgeCheck, ArrowUpLeft, CalendarCheck2, Wallet, MoveLeft } from "lucide-react";
 import { getDashboardStats } from "@/lib/workspace/server-data";
 import { PageHeader } from "@/components/workspace/page-header";
@@ -7,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/workspace/status-badge";
 import { money } from "@/lib/utils";
 export default async function DashboardPage(){
+ const identity=await getVerifiedWorkspaceSession();
+ if(identity.role==="PLATFORM_OWNER")redirect("/admin/tenants");
  const data=await getDashboardStats();
  const metrics=[
   {label:"المشروعات",value:String(data.projectsCount),icon:Building2},

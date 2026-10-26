@@ -1,10 +1,10 @@
 -- 0011: immutable receipts and append-only cheque lifecycle events.
 -- Existing cheque processing history stays in receipts as the original snapshot.
-DO $ BEGIN
+DO $secure$ BEGIN
  IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='receipts_tenant_id_id_unique') THEN
   ALTER TABLE public.receipts ADD CONSTRAINT receipts_tenant_id_id_unique UNIQUE(tenant_id,id);
  END IF;
-END $;
+END $secure$;
 CREATE TABLE IF NOT EXISTS public.receipt_cheque_events (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
  tenant_id uuid NOT NULL,

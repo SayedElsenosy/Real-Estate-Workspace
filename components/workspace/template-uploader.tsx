@@ -1,5 +1,5 @@
-import {useTranslations} from "next-intl";
 "use client";
+import {useTranslations} from "next-intl";
 import {useState} from "react";import {useRouter} from "next/navigation";import {Button} from "@/components/ui/button";import {Input} from "@/components/ui/input";
 export function TemplateUploader(){
  const t=useTranslations("ui");

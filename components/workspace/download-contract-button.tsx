@@ -1,5 +1,5 @@
-import {useTranslations} from "next-intl";
 "use client";
+import {useTranslations} from "next-intl";
 import {useState} from "react";
 import {Button} from "@/components/ui/button";
 export function DownloadContractButton({id}:{id:string}){

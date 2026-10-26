@@ -1,5 +1,5 @@
-import {useTranslations} from "next-intl";
 "use client";
+import {useTranslations} from "next-intl";
 import {useEffect} from "react";
 import {AlertTriangle} from "lucide-react";
 import {Button} from "@/components/ui/button";

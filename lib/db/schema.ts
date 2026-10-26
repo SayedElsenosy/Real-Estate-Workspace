@@ -287,7 +287,7 @@ export const invitations = pgTable("invitations", {
 
 export const auditLogs = pgTable("audit_logs", {
   id:uuid("id").primaryKey().defaultRandom(),
-  tenantId:uuid("tenant_id").notNull().references(()=>tenants.tenantId),
+  tenantId:uuid("tenant_id").notNull(),
   userId:uuid("user_id"),
   action:text("action").notNull(),
   entityType:text("entity_type").notNull(),

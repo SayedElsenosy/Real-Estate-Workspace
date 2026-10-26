@@ -276,7 +276,8 @@
     "saveError": "Unable to save",
     "saved": "Saved {entity} successfully",
     "areaLabel": "Area",
-    "unitPrice": "Unit price"
+    "unitPrice": "Unit price",
+    "entityUnit": "unit"
   },
   "ui": {
     "loginHead": "The future of real estate development management.",

@@ -276,7 +276,8 @@
     "saveError": "تعذر الحفظ",
     "saved": "تم حفظ {entity} بنجاح",
     "areaLabel": "المساحة",
-    "unitPrice": "سعر الوحدة"
+    "unitPrice": "سعر الوحدة",
+    "entityUnit": "الوحدة"
   },
   "ui": {
     "loginHead": "مستقبل إدارة التطوير العقاري.",

@@ -107,7 +107,7 @@ try {
   if(runtime)await runtime.end();
   try {
     if(fixturesCreated) {
-      await owner`DELETE FROM public.receipts WHERE tenant_id=${a}`;
+      // Disposable foundation_test database only: append-only receipt rows cannot be DELETEd.\n      await owner`TRUNCATE TABLE public.receipt_cheque_events,public.receipts`;
       await owner`DELETE FROM public.installments WHERE tenant_id=${a}`;
       await owner`DELETE FROM public.contracts WHERE tenant_id=${a}`;
       await owner`DELETE FROM public.bookings WHERE tenant_id=${a}`;

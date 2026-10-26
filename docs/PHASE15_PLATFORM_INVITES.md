@@ -4,7 +4,7 @@
 
 Migration: `db/migrations/0013_platform_invites.sql`. **Run it before deploying the new Auth.js code**, which reads tenants.is_active.
 Never set DATABASE_URL_ADMIN, PLATFORM_OWNER_PASSWORD, ADMIN_PASSWORD, or AUTH_RUNTIME_PASSWORD in Vercel. Keep them in trusted operator-only local environments.
-Both runtime PostgreSQL logins stay restricted and NOBYPASSRLS. Platform-only writes use audited, restricted SECURITY DEFINER functions checking the verified actor and tenant-local context.
+Both runtime PostgreSQL logins stay restricted and NOBYPASSRLS. Platform-only writes use role-checked, restricted SECURITY DEFINER functions checking the verified actor and tenant-local context.
 
 ## Production rollout
 

@@ -72,6 +72,8 @@ try {
   const saved=await owner`SELECT count(*)::int AS n FROM public.contracts
     WHERE tenant_id=${tenantA} AND booking_id=${bookingA}`;
   assert.equal(saved[0].n,1);
+  const sold=await owner`SELECT status FROM public.units WHERE id=${unitA}`;
+  assert.equal(sold[0].status,"SOLD","Signed contract must atomically mark unit SOLD");
   const totals=await owner`SELECT count(*)::int AS n,sum(amount)::text AS amount
     FROM public.installments WHERE tenant_id=${tenantA} AND contract_id=${result.contract.id}`;
   assert.equal(totals[0].n,3);
@@ -82,7 +84,7 @@ try {
     createSignedContract(db,{...input,tenantId:tenantB}),
     err=>err instanceof ContractError && err.code==="UNAUTHORIZED");
   await assert.rejects(
-    createSignedContract(db,{...input,totalAmount:"999999.99"}),
+    createSignedContract(db,{...input,bookingId:bookingTiny,totalAmount:"0.03"}),
     err=>err instanceof ContractError && err.code==="PRICE_MISMATCH");
 
   // Integration rollback AFTER INSERTING the contract: tiny amount cannot be

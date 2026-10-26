@@ -4,9 +4,10 @@ import { test, expect } from "@playwright/test";
 test("local sign-in → inventory → atomic booking → immediate UI update → tenant isolation",async({page})=>{
  await page.goto("/login");
  await expect(page.getByRole("heading",{name:"الدخول لمساحة العمل"})).toBeVisible();
- await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة الأفق للتطوير"});
- await page.getByLabel("الدور").selectOption("SALES");
- const responsePromise=page.waitForResponse(r=>r.url().includes("/api/dev/login"));
+ await page.getByLabel("البريد الإلكتروني").fill("company_admin@demo-horizon.example.invalid");
+ await page.getByLabel("كلمة المرور").fill(process.env.DEMO_ACCOUNT_PASSWORD!);
+ await page.getByLabel("البريد الإلكتروني").fill((await page.getByLabel("البريد الإلكتروني").inputValue()).replace("company_admin@","sales@"));
+ const responsePromise=page.waitForResponse(r=>r.url().includes("/api/auth/callback/credentials"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
  const loginResponse=await responsePromise;
  await expect(loginResponse.ok()).toBeTruthy();
@@ -44,10 +45,11 @@ test("local sign-in → inventory → atomic booking → immediate UI update →
  await page.getByRole("link",{name:"العملاء",exact:true}).click();
  await expect(page.getByText("عميل الاختبار آمن",{exact:true})).toHaveCount(1);
 
- await page.getByRole("button",{name:"تبديل الحساب"}).click();
+ await page.getByRole("button",{name:"تسجيل الخروج"}).click();
  await expect(page).toHaveURL(/\/login$/);
- await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة المدار العقارية"});
- const responsePromiseB=page.waitForResponse(r=>r.url().includes("/api/dev/login"));
+ await page.getByLabel("البريد الإلكتروني").fill("company_admin@demo-orbit.example.invalid");
+ await page.getByLabel("كلمة المرور").fill(process.env.DEMO_ACCOUNT_PASSWORD!);
+ const responsePromiseB=page.waitForResponse(r=>r.url().includes("/api/auth/callback/credentials"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
  const loginResponseB=await responsePromiseB;
  await expect(loginResponseB.ok()).toBeTruthy();
@@ -65,9 +67,10 @@ test("local sign-in → inventory → atomic booking → immediate UI update →
 
 test("accountant can see inventory but cannot book",async({page})=>{
  await page.goto("/login");
- await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة المدار العقارية"});
- await page.getByLabel("الدور").selectOption("ACCOUNTANT");
- const responsePromise=page.waitForResponse(r=>r.url().includes("/api/dev/login"));
+ await page.getByLabel("البريد الإلكتروني").fill("company_admin@demo-orbit.example.invalid");
+ await page.getByLabel("كلمة المرور").fill(process.env.DEMO_ACCOUNT_PASSWORD!);
+ await page.getByLabel("البريد الإلكتروني").fill((await page.getByLabel("البريد الإلكتروني").inputValue()).replace("company_admin@","accountant@"));
+ const responsePromise=page.waitForResponse(r=>r.url().includes("/api/auth/callback/credentials"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
  const loginResponse=await responsePromise;
  await expect(loginResponse.ok()).toBeTruthy();
@@ -79,8 +82,9 @@ test("accountant can see inventory but cannot book",async({page})=>{
 
 test("SVG floorplan opens booking modal and immediately recolors booked unit",async({page})=>{
  await page.goto("/login");
- await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة المدار العقارية"});
- await page.getByLabel("الدور").selectOption("SALES");
+ await page.getByLabel("البريد الإلكتروني").fill("company_admin@demo-orbit.example.invalid");
+ await page.getByLabel("كلمة المرور").fill(process.env.DEMO_ACCOUNT_PASSWORD!);
+ await page.getByLabel("البريد الإلكتروني").fill((await page.getByLabel("البريد الإلكتروني").inputValue()).replace("company_admin@","sales@"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
  await expect(page).toHaveURL(/\/dashboard$/);
  await page.getByRole("link",{name:"المخزون",exact:true}).click();
@@ -102,8 +106,9 @@ test("SVG floorplan opens booking modal and immediately recolors booked unit",as
 
 test("contract issuance, first installment payment, private DOCX upload and download",async({page})=>{
  await page.goto("/login");
- await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة الأفق للتطوير"});
- await page.getByLabel("الدور").selectOption("COMPANY_ADMIN");
+ await page.getByLabel("البريد الإلكتروني").fill("company_admin@demo-horizon.example.invalid");
+ await page.getByLabel("كلمة المرور").fill(process.env.DEMO_ACCOUNT_PASSWORD!);
+ await page.getByLabel("البريد الإلكتروني").fill((await page.getByLabel("البريد الإلكتروني").inputValue()).replace("company_admin@","company_admin@"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
  await expect(page).toHaveURL(/\/dashboard$/);
  await page.getByRole("link",{name:"المخزون",exact:true}).click();
@@ -168,8 +173,9 @@ test("contract issuance, first installment payment, private DOCX upload and down
 
 test("cheque issued against installment bounces and restores OVERDUE",async({page})=>{
  await page.goto("/login");
- await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة المدار العقارية"});
- await page.getByLabel("الدور").selectOption("COMPANY_ADMIN");
+ await page.getByLabel("البريد الإلكتروني").fill("company_admin@demo-orbit.example.invalid");
+ await page.getByLabel("كلمة المرور").fill(process.env.DEMO_ACCOUNT_PASSWORD!);
+ await page.getByLabel("البريد الإلكتروني").fill((await page.getByLabel("البريد الإلكتروني").inputValue()).replace("company_admin@","company_admin@"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
  await expect(page).toHaveURL(/\/dashboard$/);
  await page.getByRole("link",{name:"المخزون",exact:true}).click();
@@ -219,8 +225,9 @@ test("cheque issued against installment bounces and restores OVERDUE",async({pag
 
 test("admin builds inventory hierarchy, books and cancels, returning unit AVAILABLE",async({page})=>{
  await page.goto("/login");
- await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة الأفق للتطوير"});
- await page.getByLabel("الدور").selectOption("COMPANY_ADMIN");
+ await page.getByLabel("البريد الإلكتروني").fill("company_admin@demo-horizon.example.invalid");
+ await page.getByLabel("كلمة المرور").fill(process.env.DEMO_ACCOUNT_PASSWORD!);
+ await page.getByLabel("البريد الإلكتروني").fill((await page.getByLabel("البريد الإلكتروني").inputValue()).replace("company_admin@","company_admin@"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
  await expect(page).toHaveURL(/\/dashboard$/);
  await page.goto("/inventory/manage");
@@ -260,8 +267,9 @@ test("admin builds inventory hierarchy, books and cancels, returning unit AVAILA
 
 test("sales cannot create inventory over the API",async({page})=>{
  await page.goto("/login");
- await page.getByLabel("الشركة التجريبية").selectOption({label:"شركة المدار العقارية"});
- await page.getByLabel("الدور").selectOption("SALES");
+ await page.getByLabel("البريد الإلكتروني").fill("company_admin@demo-orbit.example.invalid");
+ await page.getByLabel("كلمة المرور").fill(process.env.DEMO_ACCOUNT_PASSWORD!);
+ await page.getByLabel("البريد الإلكتروني").fill((await page.getByLabel("البريد الإلكتروني").inputValue()).replace("company_admin@","sales@"));
  await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
  await expect(page).toHaveURL(/\/dashboard$/);
  const result=await page.request.post("/api/projects",{data:{name:"غير مصرح",location:"ممنوع"}});

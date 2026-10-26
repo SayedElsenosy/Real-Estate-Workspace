@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {getDatabase} from "@/lib/db/client";
-import {verifyRequestIdentity} from "@/lib/auth/mock-session";
+import {verifyRequestIdentity} from "@/lib/auth/session";
 import {cancelConfirmedBooking,BookingCancellationError} from "@/lib/bookings/cancel-booking";
 export const runtime="nodejs";
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

@@ -1,3 +1,7 @@
+# Current authentication (Auth.js v5)
+
+See [AUTH_SETUP.md](AUTH_SETUP.md) for the current identity model. Mock login and bearer-token fallback are removed. Identity-only auth_runtime is separate from tenant_runtime; the latter cannot read password hashes. The historical stage notes below describe earlier implementations and are superseded where authentication or cheque handling differs.
+
 # Stage 1 Security and RLS
 
 ## Isolation model

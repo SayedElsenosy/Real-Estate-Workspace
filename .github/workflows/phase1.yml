@@ -27,9 +27,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npm run db:migrate
       - run: node scripts/test-secure-receipts.mjs
+      - run: node scripts/test-auth-rls.mjs
       - run: npm run test:rls
       - run: npm run test:inventory-rls
       - run: npm run test:booking-concurrency
@@ -59,17 +60,21 @@ jobs:
       DATABASE_URL_ADMIN: postgresql://postgres:postgres@127.0.0.1:5432/foundation_test
       DATABASE_URL: postgresql://workspace_demo_runtime:demo_only_very_long_password_2026@127.0.0.1:5432/foundation_test
       DEMO_RUNTIME_PASSWORD: demo_only_very_long_password_2026
-      ENABLE_LOCAL_MOCK_LOGIN: "true"
       DEMO_SEED_ALLOW: I_ACKNOWLEDGE_DEMO_ONLY
-      MOCK_AUTH_SECRET: ci_local_only_mock_secret_at_least_64_characters_not_for_production
+      AUTH_SECRET: ci_only_auth_secret_at_least_64_characters_never_use_in_production
+      AUTH_URL: http://127.0.0.1:3000
+      AUTH_DATABASE_URL: postgresql://workspace_auth_runtime:ci_auth_only_long_password_2026@127.0.0.1:5432/foundation_test
+      AUTH_RUNTIME_PASSWORD: ci_auth_only_long_password_2026
+      DEMO_ACCOUNT_PASSWORD: CI-demo-accounts-only-2026!
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npm run db:migrate
       - run: node scripts/create-demo-runtime.mjs
+      - run: npm run auth:create-runtime
       - run: npm run db:seed-demo
       - run: npx playwright install --with-deps chromium
       - name: Launch local Next.js

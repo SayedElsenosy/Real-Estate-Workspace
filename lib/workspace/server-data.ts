@@ -1,12 +1,12 @@
 import "server-only";
 import { redirect } from "next/navigation";
 import { and, eq, sql } from "drizzle-orm";
-import { getMockSession } from "../auth/mock-session";
+import { getDatabaseSession } from "../auth/session";
 import { withTenantTransaction } from "../db/client";
 import { buildings, bookings, contracts, customers, installments, phases, projects, receipts, receiptChequeEvents, units, users } from "../db/schema";
 
 export async function getVerifiedWorkspaceSession() {
-  const identity=await getMockSession();
+  const identity=await getDatabaseSession();
   if (!identity) redirect("/login");
   const membership=await withTenantTransaction(identity.tenantId,async tx=>{
     const [user]=await tx.select({id:users.id,role:users.role}).from(users)

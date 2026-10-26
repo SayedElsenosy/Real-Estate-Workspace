@@ -1,6 +1,6 @@
 import "server-only";
 import {and,eq} from "drizzle-orm";
-import {verifyRequestIdentity} from "@/lib/auth/mock-session";
+import {verifyRequestIdentity} from "@/lib/auth/session";
 import {withTenantTransaction} from "@/lib/db/client";
 import {users} from "@/lib/db/schema";
 export async function templateAuth(req:Request,roles:string[]=["COMPANY_ADMIN"]){

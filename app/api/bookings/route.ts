@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDatabase } from "@/lib/db/client";
-import { verifyRequestIdentity } from "@/lib/auth/mock-session";
+import { verifyRequestIdentity } from "@/lib/auth/session";
 import { BookingError, createConfirmedBooking } from "@/lib/bookings/create-booking";
 
 export const runtime = "nodejs";

@@ -1,5 +1,5 @@
 import {NextResponse} from "next/server";
-import {verifyRequestIdentity} from "@/lib/auth/mock-session";
+import {verifyRequestIdentity} from "@/lib/auth/session";
 import {getDatabase} from "@/lib/db/client";
 import {createInventoryRecord,InventoryWriteError,type InventoryCreate} from "./create-record";
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

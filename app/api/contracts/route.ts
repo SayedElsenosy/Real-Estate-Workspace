@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getDatabase } from "@/lib/db/client";
-import { verifyRequestIdentity } from "@/lib/auth/mock-session";
+import { verifyRequestIdentity } from "@/lib/auth/session";
 import { ContractError, createSignedContract } from "@/lib/contracts/create-contract";
 import { PaymentPlanError } from "@/lib/contracts/generate-installments";
 

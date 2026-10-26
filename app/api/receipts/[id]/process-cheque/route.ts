@@ -1,6 +1,6 @@
 import {NextResponse} from "next/server";
 import {getDatabase} from "@/lib/db/client";
-import {verifyRequestIdentity} from "@/lib/auth/mock-session";
+import {verifyRequestIdentity} from "@/lib/auth/session";
 import {ChequeError,processChequeStatus} from "@/lib/finance/process-cheque";
 export const runtime="nodejs";
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

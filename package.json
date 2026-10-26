@@ -17,34 +17,40 @@
     "test:payments-concurrency": "node --import tsx scripts/test-payments-concurrency.mjs",
     "db:seed-demo": "node --env-file-if-exists=.env.local --import tsx scripts/seed-demo.mjs",
     "test:e2e": "playwright test",
-    "db:create-demo-runtime": "node --env-file-if-exists=.env.local scripts/create-demo-runtime.mjs"
+    "db:create-demo-runtime": "node --env-file-if-exists=.env.local scripts/create-demo-runtime.mjs",
+    "auth:create-admin": "node --env-file-if-exists=.env.local --import tsx scripts/create-admin.ts",
+    "auth:create-runtime": "node --env-file-if-exists=.env.local --import tsx scripts/create-auth-runtime.ts",
+    "test:auth-rls": "node scripts/test-auth-rls.mjs"
   },
   "dependencies": {
-    "next": "16.4.1",
-    "react": "19.2.6",
-    "react-dom": "19.2.6",
-    "drizzle-orm": "0.45.2",
-    "postgres": "^3.4.7",
-    "jose": "^6.1.0",
-    "decimal.js": "^10.6.0",
-    "lucide-react": "^0.468.0",
+    "@auth/drizzle-adapter": "^1.11.3",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.3",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^3.3.1",
+    "decimal.js": "^10.6.0",
     "docxtemplater": "^3.67.0",
-    "pizzip": "^3.2.0"
+    "drizzle-orm": "0.45.2",
+    "jose": "^6.1.0",
+    "lucide-react": "^0.468.0",
+    "next": "16.4.1",
+    "next-auth": "5.0.0-beta.32",
+    "pizzip": "^3.2.0",
+    "postgres": "^3.4.7",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@tailwindcss/postcss": "^4.1.16",
     "@types/node": "^22.16.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@tailwindcss/postcss": "^4.1.16",
     "drizzle-kit": "^0.31.0",
     "tailwindcss": "^4.1.16",
-    "typescript": "^5.9.3",
     "tsx": "^4.20.6",
-    "@playwright/test": "^1.56.1"
+    "typescript": "^5.9.3"
   }
 }

@@ -1,13 +1,17 @@
+import { hash } from "bcryptjs";
 import postgres from "postgres";
 import { DEMO_COMPANIES, DEMO_ROLES, demoSubject } from "../lib/demo/demo-config.ts";
 
 const url = process.env.DATABASE_URL_ADMIN;
 const databaseName = url ? new URL(url).pathname.slice(1) : "";
-if (!url || process.env.ENABLE_LOCAL_MOCK_LOGIN!=="true" ||
+if (!url ||
     process.env.DEMO_SEED_ALLOW!=="I_ACKNOWLEDGE_DEMO_ONLY" ||
     !(databaseName==="foundation_test" || databaseName.endsWith("_demo"))) {
-  throw new Error("Refusing to seed: requires demo-only database, ENABLE_LOCAL_MOCK_LOGIN, and explicit DEMO_SEED_ALLOW");
+  throw new Error("Refusing to seed: requires demo-only database and explicit DEMO_SEED_ALLOW");
 }
+const password=process.env.DEMO_ACCOUNT_PASSWORD;
+if (!password || password.length<12 || Buffer.byteLength(password,"utf8")>72) throw new Error("DEMO_ACCOUNT_PASSWORD must be 12+ characters and <=72 bytes");
+const passwordHash=await hash(password,12);
 const sql=postgres(url,{max:1,prepare:false});
 const mk=(n)=> n.toString(16).padStart(8,"0")+"-0000-4000-8000-"+n.toString(16).padStart(12,"0");
 try {
@@ -17,8 +21,8 @@ try {
       ON CONFLICT (tenant_id) DO NOTHING`;
     for(const role of DEMO_ROLES) {
       const email=role.toLowerCase()+"@"+tenant.slug+".example.invalid";
-      await sql`INSERT INTO public.users(tenant_id,email,full_name,role,external_auth_id)
-        VALUES(${tenant.id},${email},${role==="COMPANY_ADMIN"?"مدير الشركة":role==="SALES"?"مسؤول المبيعات":"المحاسب"},${role},${demoSubject(tenant.id,role)})
+      await sql`INSERT INTO public.users(tenant_id,email,full_name,role,external_auth_id,password_hash)
+        VALUES(${tenant.id},${email},${role==="COMPANY_ADMIN"?"مدير الشركة":role==="SALES"?"مسؤول المبيعات":"المحاسب"},${role},${demoSubject(tenant.id,role)},${passwordHash})
         ON CONFLICT DO NOTHING`;
     }
   }

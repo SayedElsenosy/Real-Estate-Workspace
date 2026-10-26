@@ -24,6 +24,10 @@ export const users = pgTable("users", {
   fullName: text("full_name").notNull(),
   role: userRole("role").notNull(),
   externalAuthId: text("external_auth_id"),
+  passwordHash: text("password_hash"),
+  emailVerified: timestamp("email_verified", { withTimezone: true }),
+  image: text("image"),
+  authVersion: integer("auth_version").notNull().default(1),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   uniqueIndex("users_tenant_email_ci_unique").on(table.tenantId, sql`lower(${table.email})`),

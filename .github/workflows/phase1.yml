@@ -31,7 +31,7 @@ jobs:
       - run: npm run db:migrate
       - run: node scripts/test-secure-receipts.mjs
       - run: node scripts/test-auth-rls.mjs
-      - run: node scripts/test-phase15-platform-invitations.mjs
+      - run: node scripts/test-phase15-direct-accounts.mjs
       - run: node scripts/test-phase16-audit.mjs
       - run: npm run test:rls
       - run: npm run test:inventory-rls

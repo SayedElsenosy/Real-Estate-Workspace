@@ -9,12 +9,10 @@ export default async function CompanyUsersPage(){
  const identity=await getVerifiedWorkspaceSession();
  if(identity.role!=="COMPANY_ADMIN")notFound();
  const data=await listCompanyUsers();
- const {t}=await getServerI18n();
+ const {t,locale}=await getServerI18n();
  return <>
   <PageHeader eyebrow="الإعدادات / STAFF" title={t("pages.settingsUsers")}
-   description={t("ui.usersDescription")}/>
-  <CompanyUserManager employees={data.employees}
-   invitations={data.pending.map(i=>({...i,expiresAt:i.expiresAt.toISOString(),
-    usedAt:i.usedAt?.toISOString()??null,revokedAt:i.revokedAt?.toISOString()??null}))}/>
+   description={locale==="ar"?"إنشاء حسابات الموظفين وتحديد أدوارهم مباشرة دون دعوات.":"Create staff accounts and assign roles directly, without invitations."}/>
+  <CompanyUserManager employees={data}/>
  </>;
 }

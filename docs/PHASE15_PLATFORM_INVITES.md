@@ -1,27 +1,27 @@
-# Phase 15 — Platform administration and invitations
+# Phase 15 revision: direct managed accounts (no invitations)
 
-## Security and environment
+## Flow
 
-Migration: `db/migrations/0013_platform_invites.sql`. **Run it before deploying the new Auth.js code**, which reads tenants.is_active.
-Never set DATABASE_URL_ADMIN, PLATFORM_OWNER_PASSWORD, ADMIN_PASSWORD, or AUTH_RUNTIME_PASSWORD in Vercel. Keep them in trusted operator-only local environments.
-Both runtime PostgreSQL logins stay restricted and NOBYPASSRLS. Platform-only writes use role-checked, restricted SECURITY DEFINER functions checking the verified actor and tenant-local context.
+- **Platform Owner** signs into the existing Auth.js login and opens /admin/tenants. Creating a company requires the company name and the initial Company Admin's name, email and temporary password. Company + admin are inserted **atomically** with a unique tenant UUID + slug. Existing companies have an "Add admin" action.
+- **Company Admin** opens /settings/users and directly creates SALES, ACCOUNTANT, or another COMPANY_ADMIN account with full name, email, role and temporary password. The user signs in immediately via /login; there are no signup/invite links or emails.
+- The password is hashed with bcrypt (cost 12) on the server; the plaintext is not persisted or returned. A password is 12+ characters (<=72 UTF-8 bytes). Share temporary credentials out of band securely; a forced-first-login-password-change flow is **not yet implemented**.
+- Accounts are stored in the existing users table; no second auth system. Auth.js Credentials reads the new record automatically through its existing authorizeCredentials and currentAuthUser callbacks.
+- Tenant suspend/reactivate continues to work with the existing role-aware authorization.
 
-## Production rollout
+## Database security
 
-1. Snapshot/branch Neon production. From a trusted terminal using the **direct, non-pooled administrator URL**, run `npm ci` then `npm run db:migrate` (includes 0013).
-2. To bootstrap the first real PLATFORM_OWNER, set local PLATFORM_OWNER_EMAIL, PLATFORM_OWNER_NAME, PLATFORM_OWNER_PASSWORD and run `npm run auth:create-platform-owner`. It refuses to overwrite an owner account.
-3. Sign into /login with the Platform Owner, open /admin/tenants and create a company. A new Tenant UUID and collision-resistant Slug are generated.
-4. A newly created company requires its initial Company Admin to be provisioned via the existing **operator-only** command `npm run auth:create-admin` using local ADMIN_TENANT_ID, ADMIN_EMAIL, ADMIN_NAME, ADMIN_PASSWORD. The admin can then use /settings/users.
-5. Vercel Production settings: add RESEND_API_KEY, INVITATION_FROM_EMAIL (a verified Resend sender), ensure AUTH_URL is the canonical HTTPS origin and redeploy. The private Resend API key must be a server-only environment variable.
-6. Sign in as Company Admin at /settings/users, invite a user and receive the email. The token-only URL /invite/[token] works for 72 hours; acceptance provisions credentials with bcrypt cost 12. The user signs in on /login after acceptance.
+- Migration `db/migrations/0015_direct_account_provisioning.sql` must run AFTER 0013 and 0014. It revokes runtime execution of all invite-creation, invite-preview and invite-acceptance SQL functions and revokes the old tenant-only platform-create RPC.
+- Historic `invitations` rows/table are retained to avoid destructive data changes; API/UI endpoints are removed. No new invitations can be issued by application logins.
+- New functions `app.platform_create_company_with_admin`, `app.platform_create_company_admin`, `app.company_create_employee` have explicit role/tenant checks, database-side validated email/name/hash and no public grant. `auth_runtime` has no execution grants. The company manager RPC never accepts a target company ID; it uses the verified transaction-local tenant context.
+- Identity actions are written to the append-only `audit_logs` table without storing email/password or password hash in the audit payload.
+- Frontend APIs check the Auth.js session, role, same-origin POST, and validate inputs before executing tenant-scoped SQL RPCs. No privileged DB admin URL may be stored in Vercel.
 
-## Security properties and limitations
+## Rollout
 
-- Platform owner pages check role server-side. Tenants use an active flag; suspension immediately blocks new logins and invalidates an existing session on its next server-side identity revalidation, without deleting any company records.
-- Invitations have RLS FORCE and no business/auth runtime direct INSERT/UPDATE privileges. Only the narrow SECURITY DEFINER RPCs create/revoke/accept them. Token SHA-256 hashes are stored, never plaintext tokens.
-- The invite acceptance function atomically checks token availability/expiry, company status, duplicate credential emails, and creates the employee. Replay fails.
-- Staff invites allow COMPANY_ADMIN, SALES, ACCOUNTANT (never PLATFORM_OWNER). No self-registration, privileged tenant creation from clients, or bypass of company RLS.
-- Resend delivery failures revoke invitations; missing mail credentials return HTTP 503. A verified sender domain is required for general delivery.
-- Platform Owner cannot automatically access another company's business data through its tenant: its dashboard lists only company summaries through a guarded database function.
-- **Not included yet**: seats/subscription enforcement, invitation revocation UI, company deletion, ownership recovery, MFA, per-employee project permissions, full audit log pipeline.
-- Never add third-party analytics on invite URLs without protecting bearer tokens. A referrer-policy header should remain set to no-referrer on these pages.
+1. Snapshot Neon production and apply 0015 from a trusted migration principal, e.g. `npm run db:migrate`. Confirm that 0013 and 0014 have already been applied.
+2. Deploy the new code only AFTER the database migration is applied. No RESEND_API_KEY / INVITATION_FROM_EMAIL required.
+3. The PLATFORM_OWNER account is bootstrapped once using the existing trusted operator-only script `npm run auth:create-platform-owner` (if not already created). Never put DATABASE_URL_ADMIN or any initial passwords in Vercel.
+4. Visit /admin/tenants to create company+administrator; company managers use /settings/users to create employees. Test each role and tenant isolation with a dedicated test company.
+5. CI SQL smoke test: `scripts/test-phase15-direct-accounts.mjs` (runs only on isolated foundation_test). Other Phase 16 audit and existing business suite remain unaffected.
+
+**Not included:** bulk user provisioning, seat caps, MFA, user-edit/deactivation, first-login password rotation, company deletion. These are separate milestones.

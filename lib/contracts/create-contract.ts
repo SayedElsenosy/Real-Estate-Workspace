@@ -48,6 +48,11 @@ export async function createSignedContract(
     if (booking.expiresAt && booking.expiresAt <= signedAt)
       throw new ContractError("BOOKING_EXPIRED","انتهت صلاحية الحجز",409);
 
+    const [existing] = await tx.select({id:contracts.id}).from(contracts)
+      .where(and(eq(contracts.tenantId,input.tenantId),eq(contracts.bookingId,input.bookingId)))
+      .limit(1);
+    if (existing) throw new ContractError("CONTRACT_EXISTS","يوجد عقد لهذا الحجز بالفعل",409);
+
     const [unit] = await tx.select({ price: units.price, status: units.status })
       .from(units).where(and(eq(units.tenantId,input.tenantId),eq(units.id,booking.unitId)))
       .for("update").limit(1);
@@ -59,10 +64,7 @@ export async function createSignedContract(
     if (!requested.eq(parsePositiveMoney(unit.price)))
       throw new ContractError("PRICE_MISMATCH","إجمالي العقد لا يطابق سعر الوحدة المعتمد",422);
 
-    const [existing] = await tx.select({id:contracts.id}).from(contracts)
-      .where(and(eq(contracts.tenantId,input.tenantId),eq(contracts.bookingId,input.bookingId)))
-      .limit(1);
-    if (existing) throw new ContractError("CONTRACT_EXISTS","يوجد عقد لهذا الحجز بالفعل",409);
+
 
     const [contract] = await tx.insert(contracts).values({
       tenantId: input.tenantId,

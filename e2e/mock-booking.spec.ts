@@ -205,6 +205,13 @@ test("cheque issued against installment bounces and restores OVERDUE",async({pag
  await expect(page.getByText("عميل شيك مرتجع")).toHaveCount(0);
  await page.goto(contractUrl);
  await expect(page.getByTestId("installment-1")).toContainText("متأخر");
+ // After a cheque bounces, the immutable receipt remains for audit.
+ // A second, new cash receipt must be allowed to settle the same installment.
+ await page.getByTestId("installment-1").getByRole("button",{name:"تسجيل دفعة"}).click();
+ const replacement=page.waitForResponse(r=>r.url().endsWith("/api/receipts")&&r.request().method()==="POST");
+ await page.getByRole("button",{name:"تأكيد الدفع"}).click();
+ expect((await replacement).status()).toBe(201);
+ await expect(page.getByTestId("installment-1")).toContainText("مدفوع");
  await expect(page.getByRole("heading",{name:/العقد/})).toBeVisible();
  await page.goto("/reports/aging");
  await expect(page.getByRole("heading",{name:"تقرير أعمار المديونيات"})).toBeVisible();

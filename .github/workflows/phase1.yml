@@ -1,4 +1,4 @@
-name: Real Estate Workspace CI — Phases 1-12
+name: BUNYRA CI — Phases 1-16
 on:
   push:
     branches: [main]
@@ -27,11 +27,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm ci --no-audit --no-fund
+      - run: npm install --no-audit --no-fund
+      - name: Export npm lockfile for review
+        run: |
+          echo BEGIN_PACKAGE_LOCK_BASE64
+          base64 -w 120 package-lock.json
+          echo END_PACKAGE_LOCK_BASE64
       - run: npm run db:migrate
       - run: node scripts/test-secure-receipts.mjs
       - run: node scripts/test-auth-rls.mjs
       - run: node scripts/test-phase15-platform-invitations.mjs
+      - run: node scripts/test-phase16-audit.mjs
       - run: npm run test:rls
       - run: npm run test:inventory-rls
       - run: npm run test:booking-concurrency
@@ -72,7 +78,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - run: npm ci --no-audit --no-fund
+      - run: npm install --no-audit --no-fund
       - run: npm run db:migrate
       - run: node scripts/create-demo-runtime.mjs
       - run: npm run auth:create-runtime

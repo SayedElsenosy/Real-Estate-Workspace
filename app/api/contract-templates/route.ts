@@ -18,6 +18,6 @@ export async function POST(req:Request){
  await withTenantTransaction(tenant,async tx=>{
   await tx.execute(sql`INSERT INTO public.contract_templates(id,tenant_id,name,file_url,is_active) VALUES(${id},${tenant},${name},${"db://templates/"+id},true)`);
   await tx.execute(sql`INSERT INTO public.contract_template_files(template_id,tenant_id,content,size_bytes) VALUES(${id},${tenant},${bytes},${bytes.length})`);
- });
+ },auth.identity.id);
  return NextResponse.json({id},{status:201});
 }

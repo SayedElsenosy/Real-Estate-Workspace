@@ -13,9 +13,10 @@ export type NewBooking={tenantId:string;externalAuthId:string;unitId:string;expi
 export async function createConfirmedBooking(db:PostgresJsDatabase<typeof schema>,input:NewBooking){
  return db.transaction(async tx=>{
   await tx.execute(sql`SELECT set_config('app.tenant_id',${input.tenantId},true)`);
-  const [actor]=await tx.select({role:users.role}).from(users).where(and(eq(users.tenantId,input.tenantId),eq(users.externalAuthId,input.externalAuthId))).limit(1);
+  const [actor]=await tx.select({id:users.id,role:users.role}).from(users).where(and(eq(users.tenantId,input.tenantId),eq(users.externalAuthId,input.externalAuthId))).limit(1);
   if(!actor)throw new BookingError("UNAUTHORIZED","حساب المستخدم غير مرتبط بالشركة",401);
   if(!["SALES","COMPANY_ADMIN"].includes(actor.role))throw new BookingError("FORBIDDEN","ليس لديك صلاحية الحجز",403);
+  await tx.execute(sql`select set_config('app.actor_id',${actor.id},true)`);
   const [unit]=await tx.select({status:units.status}).from(units)
    .where(and(eq(units.tenantId,input.tenantId),eq(units.id,input.unitId))).for("update").limit(1);
   if(!unit)throw new BookingError("UNIT_NOT_FOUND","الوحدة غير موجودة",404);

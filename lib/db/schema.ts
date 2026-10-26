@@ -284,3 +284,15 @@ export const invitations = pgTable("invitations", {
   createdBy: uuid("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at", {withTimezone:true}).notNull().defaultNow(),
 });
+
+export const auditLogs = pgTable("audit_logs", {
+  id:uuid("id").primaryKey().defaultRandom(),
+  tenantId:uuid("tenant_id").notNull().references(()=>tenants.tenantId),
+  userId:uuid("user_id").references(()=>users.id),
+  action:text("action").notNull(),
+  entityType:text("entity_type").notNull(),
+  entityId:uuid("entity_id").notNull(),
+  oldValues:jsonb("old_values").$type<Record<string,unknown>|null>(),
+  newValues:jsonb("new_values").$type<Record<string,unknown>|null>(),
+  createdAt:timestamp("created_at",{withTimezone:true}).notNull().defaultNow(),
+});

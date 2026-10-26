@@ -1,3 +1,4 @@
+import { getServerI18n } from "@/lib/i18n/server";
 import { CancelBookingButton } from "@/components/workspace/cancel-booking-button";
 import { businessDate } from "@/lib/utils/date";
 import { loadWorkspace, type WorkspaceListQuery } from "@/lib/workspace/server-data";
@@ -9,8 +10,9 @@ import { StatusBadge } from "@/components/workspace/status-badge";
 import { ContractGeneration } from "@/components/workspace/contract-generation";
 export default async function BookingsPage({searchParams}:{searchParams:Promise<Omit<WorkspaceListQuery,"resource">>}) {
   const d=await loadWorkspace({...await searchParams,resource:"bookings"});
+ const {t}=await getServerI18n();
   if(d.resource!=="bookings") throw new Error("Unexpected bookings query");
-  return <><PageHeader eyebrow="المبيعات / BOOKINGS" title="الحجوزات" description="حجوزات العملاء المسجلة داخل شركتك."/>
+  return <><PageHeader eyebrow="المبيعات / BOOKINGS" title={t("pages.bookings")} description="حجوزات العملاء المسجلة داخل شركتك."/>
     <div className="mb-4"><TableSearch path="/bookings" search={d.pagination.search} placeholder="اسم العميل أو رقم الوحدة"/></div>
     <Card className="overflow-hidden"><Table><TableHeader><TableRow><TableHead>العميل</TableHead><TableHead>الوحدة</TableHead><TableHead>الحالة</TableHead><TableHead>التاريخ</TableHead><TableHead>العقد</TableHead><TableHead>الإجراءات</TableHead></TableRow></TableHeader>
       <TableBody>{d.rows.map(b=><TableRow key={b.id}>

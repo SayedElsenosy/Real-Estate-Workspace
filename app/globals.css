@@ -13,3 +13,36 @@ body{margin:0;background:var(--background);color:var(--foreground);}
 button,select,input{font:inherit;}
 a{text-decoration:none;}
 ::selection{background:#cde9e0;color:#155c51;}
+
+
+/* Phase 16: class-based next-themes. Dark defaults apply to legacy hardcoded Tailwind
+   palette classes while components gradually adopt semantic surface tokens. */
+@custom-variant dark (&:where(.dark, .dark *));
+:root.dark {
+ color-scheme:dark;
+ --background:#101b1a;
+ --foreground:#e5f1ed;
+ --primary:#42b6a4;
+ --border:#334d46;
+}
+:root.dark body {background:var(--background);color:var(--foreground);}
+:root.dark .bg-white,
+:root.dark [class*="bg-[#f"],
+:root.dark [class*="bg-[#F"] {background-color:#182624 !important;}
+:root.dark [class*="bg-[#e"],
+:root.dark [class*="bg-[#E"] {background-color:#243c36 !important;}
+:root.dark [class*="border-[#"],
+:root.dark [class*="divide-[#"] {border-color:#355047 !important;}
+:root.dark [class*="text-[#"] {color:#e0ece7 !important;}
+:root.dark [class*="text-slate-"],
+:root.dark [class*="text-gray-"] {color:#a9bbb5 !important;}
+:root.dark .text-white {color:#ffffff;}
+:root.dark input,
+:root.dark select,
+:root.dark textarea {background-color:#172725;color:#f1f6f4;border-color:#3b554d;}
+:root.dark input::placeholder,
+:root.dark textarea::placeholder {color:#89a29b;}
+:root.dark .bg-slate-100 {background-color:#223532;color:#e8f0ec;}
+:root.dark .bg-red-50 {background-color:#3a2026;color:#ffbdc5;}
+:root.dark [class*="hover:bg-[#"]:hover {background-color:#27453c !important;}
+:root.dark .shadow-lg {box-shadow:0 8px 24px #0005;}

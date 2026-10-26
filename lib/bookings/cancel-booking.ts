@@ -8,8 +8,9 @@ export class BookingCancellationError extends Error{
 export async function cancelConfirmedBooking(db:PostgresJsDatabase<typeof schema>,input:{tenantId:string;externalAuthId:string;bookingId:string}){
  return db.transaction(async tx=>{
   await tx.execute(sql`SELECT set_config('app.tenant_id',${input.tenantId},true)`);
-  const [actor]=await tx.select({role:users.role}).from(users).where(and(eq(users.tenantId,input.tenantId),eq(users.externalAuthId,input.externalAuthId))).limit(1);
+  const [actor]=await tx.select({id:users.id,role:users.role}).from(users).where(and(eq(users.tenantId,input.tenantId),eq(users.externalAuthId,input.externalAuthId))).limit(1);
   if(!actor||actor.role!=="COMPANY_ADMIN")throw new BookingCancellationError("FORBIDDEN","إلغاء الحجز متاح لمدير الشركة فقط",403);
+  await tx.execute(sql`select set_config('app.actor_id',${actor.id},true)`);
   const [booking]=await tx.select({id:bookings.id,status:bookings.status,unitId:bookings.unitId})
    .from(bookings).where(and(eq(bookings.tenantId,input.tenantId),eq(bookings.id,input.bookingId))).for("update").limit(1);
   if(!booking)throw new BookingCancellationError("NOT_FOUND","الحجز غير موجود",404);

@@ -28,12 +28,13 @@ export async function createSignedContract(
 ) {
   return db.transaction(async tx => {
     await tx.execute(sql`SELECT set_config('app.tenant_id', ${input.tenantId}, true)`);
-    const [actor] = await tx.select({ role: users.role }).from(users)
+    const [actor] = await tx.select({id:users.id,role:users.role}).from(users)
       .where(and(eq(users.tenantId, input.tenantId),eq(users.externalAuthId,input.externalAuthId))).limit(1);
     if (!actor) throw new ContractError("UNAUTHORIZED","حساب المستخدم غير مرتبط بالشركة",401);
     if (actor.role !== "COMPANY_ADMIN")
       throw new ContractError("FORBIDDEN","توقيع العقود متاح لمدير الشركة فقط حاليًا",403);
 
+    await tx.execute(sql`select set_config('app.actor_id',${actor.id},true)`);
     // Concurrent signatures serialize on the same booking row.
     const [booking] = await tx.select({
       id: bookings.id, unitId: bookings.unitId,

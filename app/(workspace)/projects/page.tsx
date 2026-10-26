@@ -2,11 +2,13 @@ import Link from "next/link";
 import { ArrowUpLeft, Building2, MapPin } from "lucide-react";
 import { loadWorkspace } from "@/lib/workspace/server-data";
 import { PageHeader } from "@/components/workspace/page-header";
+import { getServerI18n } from "@/lib/i18n/server";
 import { Card } from "@/components/ui/card";
 import { StatusBadge } from "@/components/workspace/status-badge";
 export default async function ProjectsPage(){
  const data=await loadWorkspace();
- return <><PageHeader eyebrow="المشروعات / PROJECTS" title="المشروعات العقارية" description="اختر مشروعًا للانتقال إلى مراحله ومبانيه والوحدات المتاحة فيه."/>
+ const {t}=await getServerI18n();
+ return <><PageHeader eyebrow="المشروعات / PROJECTS" title={t("pages.projects")} description="اختر مشروعًا للانتقال إلى مراحله ومبانيه والوحدات المتاحة فيه."/>
   {data.session.role==="COMPANY_ADMIN"&&<div className="mb-5"><Link href="/inventory/manage" className="inline-flex rounded-xl bg-[#19776f] px-5 py-3 text-sm font-bold text-white">إضافة مخزون جديد</Link></div>}
   <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{data.projects.map((project,i)=>{
     const phaseIds=data.phases.filter(x=>x.projectId===project.id).map(x=>x.id);

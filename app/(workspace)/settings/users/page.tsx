@@ -1,3 +1,4 @@
+import {getServerI18n} from "@/lib/i18n/server";
 import { notFound } from "next/navigation";
 import { getVerifiedWorkspaceSession } from "@/lib/workspace/server-data";
 import { listCompanyUsers } from "@/lib/platform/administration";
@@ -8,8 +9,9 @@ export default async function CompanyUsersPage(){
  const identity=await getVerifiedWorkspaceSession();
  if(identity.role!=="COMPANY_ADMIN")notFound();
  const data=await listCompanyUsers();
+ const {t}=await getServerI18n();
  return <>
-  <PageHeader eyebrow="الإعدادات / STAFF" title="إدارة المستخدمين"
+  <PageHeader eyebrow="الإعدادات / STAFF" title={t("pages.settingsUsers")}
    description="عرض أعضاء الشركة وإرسال دعوات إلكترونية لإنشاء الحسابات."/>
   <CompanyUserManager employees={data.employees}
    invitations={data.pending.map(i=>({...i,expiresAt:i.expiresAt.toISOString(),

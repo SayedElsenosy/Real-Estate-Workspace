@@ -13,9 +13,10 @@ export type InventoryCreate =
 export async function createInventoryRecord(db:PostgresJsDatabase<typeof schema>,identity:{tenantId:string;externalAuthId:string},input:InventoryCreate){
  return db.transaction(async tx=>{
   await tx.execute(sql`SELECT set_config('app.tenant_id',${identity.tenantId},true)`);
-  const [actor]=await tx.select({role:users.role}).from(users).where(and(eq(users.tenantId,identity.tenantId),eq(users.externalAuthId,identity.externalAuthId))).limit(1);
+  const [actor]=await tx.select({id:users.id,role:users.role}).from(users).where(and(eq(users.tenantId,identity.tenantId),eq(users.externalAuthId,identity.externalAuthId))).limit(1);
   if(!actor)throw new InventoryWriteError("UNAUTHORIZED","المستخدم غير مرتبط بالشركة",401);
   if(actor.role!=="COMPANY_ADMIN")throw new InventoryWriteError("FORBIDDEN","إنشاء المخزون متاح لمدير الشركة فقط",403);
+  await tx.execute(sql`select set_config('app.actor_id',${actor.id},true)`);
   const tenantId=identity.tenantId;
   if(input.kind==="project"){
    const [created]=await tx.insert(projects).values({tenantId,name:input.name,location:input.location,status:"PLANNED"}).returning({id:projects.id,name:projects.name});

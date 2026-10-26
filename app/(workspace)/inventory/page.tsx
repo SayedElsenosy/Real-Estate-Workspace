@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { loadWorkspace, type WorkspaceListQuery } from "@/lib/workspace/server-data";
 import { PageHeader } from "@/components/workspace/page-header";
+import { getServerI18n } from "@/lib/i18n/server";
 import { InventoryClient } from "@/components/workspace/inventory-client";
 import { PaginationNav } from "@/components/workspace/pagination-nav";
 
 export default async function InventoryPage({searchParams}:{searchParams:Promise<Omit<WorkspaceListQuery,"resource">>}) {
   const params=await searchParams;
+ const {t}=await getServerI18n();
   const d=await loadWorkspace({...params,resource:"units"});
   if(d.resource!=="units") throw new Error("Unexpected inventory query");
   return <>
-    <PageHeader eyebrow="المخزون / INVENTORY" title="الوحدات والمخزون"
+    <PageHeader eyebrow="المخزون / INVENTORY" title={t("pages.inventory")}
       description="تصفح الوحدات مع البحث وتقسيم النتائج من قاعدة البيانات."/>
     {d.session.role==="COMPANY_ADMIN"&&<div className="mb-5">
       <Link href="/inventory/manage" className="inline-flex rounded-xl bg-[#19776f] px-4 py-2 font-bold text-white">إضافة مشروع أو وحدة</Link>

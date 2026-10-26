@@ -1,3 +1,4 @@
+import { getServerI18n } from "@/lib/i18n/server";
 import Link from "next/link";
 import { loadWorkspace, type WorkspaceListQuery } from "@/lib/workspace/server-data";
 import { PageHeader } from "@/components/workspace/page-header";
@@ -8,8 +9,9 @@ import { StatusBadge } from "@/components/workspace/status-badge";
 import { money } from "@/lib/utils";
 export default async function ContractsPage({searchParams}:{searchParams:Promise<Omit<WorkspaceListQuery,"resource">>}) {
   const d=await loadWorkspace({...await searchParams,resource:"contracts"});
+ const {t}=await getServerI18n();
   if(d.resource!=="contracts") throw new Error("Unexpected contracts query");
-  return <><PageHeader eyebrow="العقود / CONTRACTS" title="العقود والأقساط" description="العقود وجدول السداد المرتبط بها"/>
+  return <><PageHeader eyebrow="العقود / CONTRACTS" title={t("pages.contracts")} description="العقود وجدول السداد المرتبط بها"/>
     <div className="mb-4"><TableSearch path="/contracts" search={d.pagination.search} placeholder="اسم العميل أو رقم العقد"/></div>
     <Card className="overflow-hidden"><Table><TableHeader><TableRow><TableHead>العقد</TableHead><TableHead>العميل</TableHead><TableHead>الإجمالي</TableHead><TableHead>الحالة</TableHead></TableRow></TableHeader>
       <TableBody>{d.rows.map(c=><TableRow key={c.id}>

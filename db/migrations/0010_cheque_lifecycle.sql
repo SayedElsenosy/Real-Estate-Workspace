@@ -20,8 +20,16 @@ DO $$ BEGIN IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname='receipt_cle
 END IF; END $$;
 -- A bounced receipt is retained for audit but must not block a replacement payment.
 DROP INDEX IF EXISTS public.receipts_single_settlement_per_installment_idx;
-CREATE UNIQUE INDEX receipts_single_settlement_per_installment_idx ON public.receipts(tenant_id,installment_id)
- WHERE installment_id IS NOT NULL AND cheque_clearance_status IS DISTINCT FROM 'BOUNCED';
+-- Only for databases that have not reached the event-based append-only stage.
+-- On replay after stage 11, an old PENDING receipt can have a BOUNCED event
+-- and a valid replacement receipt. The legacy index would wrongly reject it.
+DO $ BEGIN
+ IF to_regclass('public.receipt_cheque_events') IS NULL THEN
+  CREATE UNIQUE INDEX IF NOT EXISTS receipts_single_settlement_per_installment_idx
+    ON public.receipts(tenant_id,installment_id)
+    WHERE installment_id IS NOT NULL AND cheque_clearance_status IS DISTINCT FROM 'BOUNCED';
+ END IF;
+END $;
 CREATE INDEX IF NOT EXISTS receipts_cheque_queue_idx ON public.receipts(tenant_id,cheque_clearance_status,created_at) WHERE method='CHEQUE';
 GRANT USAGE ON TYPE public.cheque_clearance_status_enum TO tenant_runtime;
 

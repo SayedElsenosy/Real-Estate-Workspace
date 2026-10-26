@@ -76,6 +76,13 @@ jobs:
       - run: node scripts/create-demo-runtime.mjs
       - run: npm run auth:create-runtime
       - run: npm run db:seed-demo
+      - name: Verify first administrator provisioning
+        run: npm run auth:create-admin
+        env:
+          ADMIN_TENANT_ID: a1111111-1111-4111-8111-111111111111
+          ADMIN_EMAIL: provisioned-admin@demo-horizon.example.invalid
+          ADMIN_NAME: CI Provisioned Admin
+          ADMIN_PASSWORD: CI-provisioning-only-2026!
       - run: npx playwright install --with-deps chromium
       - name: Launch local Next.js
         run: |

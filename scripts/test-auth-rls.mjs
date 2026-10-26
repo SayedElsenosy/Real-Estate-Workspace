@@ -6,8 +6,9 @@ if(!url || new URL(url).pathname!=="/foundation_test") throw new Error("Requires
 const db=postgres(url,{max:1});const rollback=new Error("rollback");
 try {
  try {await db.begin(async tx=>{
-  const t=randomUUID(),u=randomUUID(),email=randomUUID()+"@example.invalid";
+  const t=randomUUID(),otherTenant=randomUUID(),u=randomUUID(),email=randomUUID()+"@example.invalid";
   await tx`INSERT INTO tenants(tenant_id,name,slug) VALUES(${t},'Auth RLS',${'auth-'+t})`;
+  await tx`INSERT INTO tenants(tenant_id,name,slug) VALUES(${otherTenant},'Other Auth Tenant',${'auth-'+otherTenant})`;
   await tx`INSERT INTO users(id,tenant_id,email,full_name,role,external_auth_id,password_hash)
    VALUES(${u},${t},${email},'Auth RLS','COMPANY_ADMIN',${u},'test-only-hash')`;
   const [{auth_version:before}]=await tx`SELECT auth_version FROM users WHERE id=${u}`;
@@ -30,7 +31,7 @@ try {
   // Case-insensitive unique email across credential-enabled identities, even in other tenants.
   await assert.rejects(tx.savepoint(async sub=>{
    await sub`INSERT INTO users(tenant_id,email,full_name,role,external_auth_id,password_hash)
-    VALUES(${t},${email.toUpperCase()},'Duplicate','SALES',${randomUUID()},'test-hash')`;
+    VALUES(${otherTenant},${email.toUpperCase()},'Duplicate','SALES',${randomUUID()},'test-hash')`;
   }),{code:'23505'});
   throw rollback;
  });} catch(error){if(error!==rollback)throw error;}

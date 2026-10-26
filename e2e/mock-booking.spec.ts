@@ -111,7 +111,10 @@ test("contract issuance, first installment payment, private DOCX upload and down
  await row.getByRole("button",{name:"حجز"}).click();
  await page.getByLabel("اسم العميل").fill("مشتري العقد الآلي");
  await page.getByLabel("رقم الهاتف").fill("01055551234");
+ const bookingReply=page.waitForResponse(r=>r.url().endsWith("/api/bookings")&&r.request().method()==="POST");
  await page.getByRole("button",{name:"تأكيد الحجز"}).click();
+ const bookingResult=await (await bookingReply).json();
+ const newBookingId=bookingResult.booking.id as string;
  await expect(row).toContainText("محجوزة");
  await page.getByRole("link",{name:"الحجوزات",exact:true}).click();
  const buyerRow=page.getByRole("row").filter({hasText:"مشتري العقد الآلي"});
@@ -121,6 +124,11 @@ test("contract issuance, first installment payment, private DOCX upload and down
  const issueResponse=await issued;
  console.log("contract API:",issueResponse.status(),await issueResponse.text());
  await expect(page).toHaveURL(/\/contracts$/);
+ const forbiddenCancel=await page.request.post("/api/bookings/"+newBookingId+"/cancel");
+ expect(forbiddenCancel.status()).toBe(409);
+ await page.goto("/inventory");
+ await expect(page.getByTestId("unit-row-A-103")).toContainText("مباعة");
+ await page.goto("/contracts");
  await page.getByRole("row").filter({hasText:"مشتري العقد الآلي"}).getByRole("link").click();
  await expect(page.getByRole("heading",{name:/العقد/})).toBeVisible();
  await page.screenshot({path:"test-results/contract-details.png",fullPage:true});

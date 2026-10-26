@@ -1,0 +1,23 @@
+import {test,expect} from "@playwright/test";
+test("Phase 16 language, theme and tenant audit page", async ({page})=>{
+ await page.goto("/login");
+ await page.getByLabel("البريد الإلكتروني").fill("company_admin@demo-horizon.example.invalid");
+ await page.getByLabel("كلمة المرور").fill(process.env.DEMO_ACCOUNT_PASSWORD!);
+ await page.getByRole("button",{name:"دخول مساحة العمل"}).click();
+ await expect(page).toHaveURL(/\/dashboard$/);
+ await expect(page.getByRole("link",{name:"لوحة التحكم",exact:true})).toBeVisible();
+ const dark=page.getByRole("button",{name:"الوضع الداكن"});
+ await expect(dark).toBeEnabled();
+ await dark.click();
+ await expect(page.locator("html")).toHaveClass(/dark/);
+ await page.getByRole("combobox",{name:"اللغة"}).selectOption("en");
+ await expect(page.locator("html")).toHaveAttribute("lang","en");
+ await expect(page.locator("html")).toHaveAttribute("dir","ltr");
+ await expect(page.getByRole("link",{name:"Dashboard",exact:true})).toBeVisible();
+ await page.getByRole("combobox",{name:"Language"}).selectOption("ar");
+ await expect(page.locator("html")).toHaveAttribute("lang","ar");
+ await expect(page.locator("html")).toHaveAttribute("dir","rtl");
+ await page.goto("/settings/audit");
+ await expect(page.getByRole("heading",{name:"سجل التدقيق"})).toBeVisible();
+ await expect(page.getByRole("navigation",{name:"تقسيم الصفحات"})).toBeVisible();
+});

@@ -266,4 +266,6 @@ test("sales cannot create inventory over the API",async({page})=>{
  await expect(page).toHaveURL(/\/dashboard$/);
  const result=await page.request.post("/api/projects",{data:{name:"غير مصرح",location:"ممنوع"}});
  expect(result.status()).toBe(403);
+ const forbiddenCancel=await page.request.post("/api/bookings/11111111-1111-4111-8111-111111111111/cancel");
+ expect(forbiddenCancel.status()).toBe(403);
 });

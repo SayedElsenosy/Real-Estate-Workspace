@@ -7,7 +7,7 @@
 - `app/api/auth/[...nextauth]/route.ts`: Auth.js GET/POST handlers. Auth.js handles credential sign-in CSRF, encrypted HttpOnly session cookies and CSRF-protected sign-out. HTTPS production uses secure cookies automatically.
 - `lib/auth/session.ts`: `getDatabaseSession()` reads `auth()`. Every business API uses this identity, with no bearer/header/body identity fallback. Cross-origin browser mutations are rejected.
 - Business services still recheck tenant membership/roles inside RLS transactions, using existing external_auth_id from the verified database identity.
-- Every server-side JWT read revalidates the user against the identity database. A trigger increments auth_version when password, role, tenant or external identity changes. Old JWTs are rejected, including after a password reset or removal of password_hash. Client session updates cannot set role/tenant.
+- Every server-side JWT read revalidates the user against the identity database. A trigger increments auth_version when password, active status, role, tenant or external identity changes. Old JWTs are rejected, including after a password reset or removal of password_hash. Client session updates cannot set role/tenant.
 - Middleware validates the encrypted cookie without importing PostgreSQL at the edge; DB revalidation in pages/APIs is mandatory and also protects revoked sessions.
 - A shared PostgreSQL counter limits each normalized email to ten attempts per fifteen minutes. Email identifiers are HMAC-hashed; errors do not disclose whether an account exists. Bcrypt's 72-byte input limit is enforced.
 

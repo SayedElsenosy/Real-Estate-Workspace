@@ -30,7 +30,7 @@ export async function authorizeCredentials(credentials: Partial<Record<string, u
   .where(sql`lower(btrim(${authUsers.email}))=${email} AND ${authUsers.passwordHash} IS NOT NULL`).limit(2);
  const found=rows.length===1?rows[0]:undefined;
  const valid=await compare(password,found?.user.passwordHash??DUMMY_HASH);
- if (!found || !valid || !found.user.externalAuthId) return null;
+ if (!found || !valid || !found.user.isActive || !found.user.externalAuthId) return null;
  const {user,companyName}=found;
  return { id:user.id,name:user.name,email:user.email,tenantId:user.tenantId,role:user.role,
   externalAuthId:user.externalAuthId!,companyName,authVersion:user.authVersion };

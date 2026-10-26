@@ -53,3 +53,12 @@ test("database role changes revoke an existing JWT and a tampered cookie cannot 
  await page.context().addCookies([{...cookie,value:"forged."+cookie.value}]);
  expect((await page.request.post("/api/projects",{data:{name:"Tampered"}})).status()).toBe(401);
 });
+
+test("disabled accounts cannot keep a JWT or sign in again",async({page})=>{
+ await login(page);await expect(page).toHaveURL(/\/dashboard$/);
+ try {
+  await db`UPDATE users SET is_active=false WHERE id=${id}`;
+  expect((await page.request.post("/api/projects",{data:{name:"Disabled account"}})).status()).toBe(401);
+  await login(page);await expect(page.getByRole("alert")).toBeVisible();
+ } finally {await db`UPDATE users SET is_active=true WHERE id=${id}`;}
+});

@@ -1,5 +1,6 @@
 -- Run only with the trusted migration principal, never the web runtime.
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS password_hash text;
+ALTER TABLE public.users ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS email_verified timestamptz;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS image text;
 ALTER TABLE public.users ADD COLUMN IF NOT EXISTS auth_version integer NOT NULL DEFAULT 1;
@@ -10,7 +11,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS users_credentials_email_ci_unique
 CREATE OR REPLACE FUNCTION app.invalidate_user_sessions() RETURNS trigger
 LANGUAGE plpgsql SET search_path = pg_catalog, public AS $$
 BEGIN
- IF NEW.password_hash IS DISTINCT FROM OLD.password_hash OR NEW.role IS DISTINCT FROM OLD.role
+ IF NEW.is_active IS DISTINCT FROM OLD.is_active OR NEW.password_hash IS DISTINCT FROM OLD.password_hash OR NEW.role IS DISTINCT FROM OLD.role
  OR NEW.tenant_id IS DISTINCT FROM OLD.tenant_id OR NEW.external_auth_id IS DISTINCT FROM OLD.external_auth_id THEN
   NEW.auth_version := OLD.auth_version + 1;
  END IF;

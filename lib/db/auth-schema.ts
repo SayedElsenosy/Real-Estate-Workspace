@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, integer, primaryKey } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, integer, boolean, primaryKey } from "drizzle-orm/pg-core";
 import type { AdapterAccountType } from "next-auth/adapters";
 import { tenants, userRole } from "./schema";
 
@@ -9,6 +9,7 @@ export const authUsers = pgTable("users", {
  emailVerified: timestamp("email_verified", {withTimezone:true}), image: text("image"),
  tenantId: uuid("tenant_id").notNull().references(()=>tenants.tenantId),
  role: userRole("role").notNull(), externalAuthId: text("external_auth_id"),
+ isActive: boolean("is_active").notNull().default(true),
  passwordHash: text("password_hash"), authVersion: integer("auth_version").notNull().default(1),
 });
 export const accounts = pgTable("accounts", {

@@ -25,6 +25,7 @@ export const users = pgTable("users", {
   role: userRole("role").notNull(),
   externalAuthId: text("external_auth_id"),
   passwordHash: text("password_hash"),
+  isActive: boolean("is_active").notNull().default(true),
   emailVerified: timestamp("email_verified", { withTimezone: true }),
   image: text("image"),
   authVersion: integer("auth_version").notNull().default(1),

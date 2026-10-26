@@ -1,5 +1,5 @@
 "use client";
-import {useState} from "react";
+import {useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {CalendarCheck2,LoaderCircle,UserRound,Phone,UserPlus} from "lucide-react";
 import {Button} from "@/components/ui/button";
@@ -10,13 +10,27 @@ export type UnitForBooking={id:string;unitNumber:string;price:string};
 export function BookingDialog({unit,onClose,onSuccess,customers}:{unit:UnitForBooking|null;onClose:()=>void;onSuccess:(id:string)=>void;customers:{id:string;fullName:string;phonePrimary:string}[]}){
  const [mode,setMode]=useState<"existing"|"new">("new");
  const [query,setQuery]=useState("");
+ const [matches,setMatches]=useState(customers);
  const [customerId,setCustomerId]=useState("");
  const [name,setName]=useState("");
  const [phone,setPhone]=useState("");
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const router=useRouter();
- const found=customers.filter(c=>(c.fullName+" "+c.phonePrimary).toLowerCase().includes(query.trim().toLowerCase())).slice(0,30);
+ useEffect(()=>{
+  if(mode!=="existing" || !unit) return;
+  const controller=new AbortController();
+  const timer=setTimeout(async()=>{
+   try{
+    const response=await fetch("/api/customers/search?search="+encodeURIComponent(query.trim()),{signal:controller.signal});
+    if(!response.ok) return;
+    const result=await response.json();
+    setMatches(result.customers??[]);
+   }catch{/* Request superseded or network unavailable. */}
+  },250);
+  return ()=>{clearTimeout(timer);controller.abort();};
+ },[mode,query,unit]);
+ const found=matches;
  function close(){if(!busy){setError("");setName("");setPhone("");setCustomerId("");onClose();}}
  async function submit(event:React.FormEvent<HTMLFormElement>){
   event.preventDefault();if(!unit||busy)return;setError("");setBusy(true);

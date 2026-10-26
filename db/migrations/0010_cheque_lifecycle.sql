@@ -23,13 +23,13 @@ DROP INDEX IF EXISTS public.receipts_single_settlement_per_installment_idx;
 -- Only for databases that have not reached the event-based append-only stage.
 -- On replay after stage 11, an old PENDING receipt can have a BOUNCED event
 -- and a valid replacement receipt. The legacy index would wrongly reject it.
-DO $ BEGIN
+DO $legacy_index_guard$ BEGIN
  IF to_regclass('public.receipt_cheque_events') IS NULL THEN
   CREATE UNIQUE INDEX IF NOT EXISTS receipts_single_settlement_per_installment_idx
     ON public.receipts(tenant_id,installment_id)
     WHERE installment_id IS NOT NULL AND cheque_clearance_status IS DISTINCT FROM 'BOUNCED';
  END IF;
-END $;
+END $legacy_index_guard$;
 CREATE INDEX IF NOT EXISTS receipts_cheque_queue_idx ON public.receipts(tenant_id,cheque_clearance_status,created_at) WHERE method='CHEQUE';
 GRANT USAGE ON TYPE public.cheque_clearance_status_enum TO tenant_runtime;
 

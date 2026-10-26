@@ -52,7 +52,16 @@ Test additions:
 - `scripts/test-business-date.mjs` now tests offset-aware timestamps and rejects timezone-ambiguous / invalid dates; `businessDate` enforces these inputs.
 - Workspace error page no longer claims that a failed render necessarily rolled back a successful mutation.
 
-### Verification boundary
-The last observed Phase 12-era **green workflow run** is [40246736509](https://github.com/SayedElsenosy/Real-Estate-Workspace/actions/runs/40246736509), at the earlier `0011_secure_receipts.sql` commit. Later runs (including all commits in this audit) show both jobs failing **before any step executes**, with no runner allocated and no logs; therefore no green verification of the new test suite is claimed. This is an Actions execution blocker, not a reported failing assertion or SQL traceback. Re-run the latest workflow after GitHub Actions runner access is restored and inspect the first actionable failure if any.
+### Verification — final
 
-Read-only Neon inspection of `real_estate_workspace` found `contract_templates` and `contract_template_files` present, but `receipt_cheque_events` absent. Thus **do not assume the append-only cheque event schema and the Phase 12 migration have been applied to persistent Neon**. This audit did not change persistent Neon data/schema; apply the authorized migrations in a controlled deployment and verify permissions, RLS and trigger presence before enabling production traffic.
+- **Latest fully green GitHub Actions:** [run 40295174960](https://github.com/SayedElsenosy/Real-Estate-Workspace/actions/runs/40295174960), commit `728fffecf4acaeedda20dfc608448ceac74c3d6e`.
+- Foundation succeeded: PostgreSQL migrations, immutable-receipt permission tests, tenant RLS, booking concurrency, Cairo business-date cases, installment arithmetic, atomic contracts/payments, TypeScript and Next.js production build.
+- Chromium E2E succeeded: role-restricted inventory creation, booking cancellation and unit AVAILABLE, signed-contract SOLD and cancellation 409, bounced cheque followed by successful cash receipt, customer/document workflows.
+- In the same disposable database, **migration replay after the bounced-cheque cash replacement passed**, then the integration probe confirmed real receipts and cheque events reject UPDATE/DELETE while retaining original rows.
+- The earlier series of workflow failures was traced to two causes: jobs that never received a runner, followed by a malformed dollar-quote in the newly added legacy-index replay guards. Both issues ceased to block the verified run; the SQL guards now use valid tagged dollar-quoting.
+- [Chromium screenshots](https://github.com/SayedElsenosy/Real-Estate-Workspace/actions/runs/40295174960/artifacts/12637769150) are available from the run.
+
+### Persistent database and production readiness
+Read-only inspection of the separate Neon `real_estate_workspace` database found `contract_templates` and `contract_template_files`, but **`receipt_cheque_events` was absent**. The green tests above used ephemeral GitHub Actions PostgreSQL, **not persistent Neon**. Do not assume Neon has received migrations `0010` and `0011`; stage 12 must be deployed by an authorized database migration process and verified before relying on cheque resolution or immutable-receipt rules in production.
+
+A formal compensating receipt / reversing-journal workflow is not implemented; mistakes must not be fixed by editing existing receipt rows. Production identity, customer data permissions and post-deployment checks remain necessary before real-money operation.

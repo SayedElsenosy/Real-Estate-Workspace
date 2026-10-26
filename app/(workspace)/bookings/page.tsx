@@ -12,17 +12,17 @@ export default async function BookingsPage({searchParams}:{searchParams:Promise<
   const d=await loadWorkspace({...await searchParams,resource:"bookings"});
  const {t}=await getServerI18n();
   if(d.resource!=="bookings") throw new Error("Unexpected bookings query");
-  return <><PageHeader eyebrow="المبيعات / BOOKINGS" title={t("pages.bookings")} description="حجوزات العملاء المسجلة داخل شركتك."/>
-    <div className="mb-4"><TableSearch path="/bookings" search={d.pagination.search} placeholder="اسم العميل أو رقم الوحدة"/></div>
-    <Card className="overflow-hidden"><Table><TableHeader><TableRow><TableHead>العميل</TableHead><TableHead>الوحدة</TableHead><TableHead>الحالة</TableHead><TableHead>التاريخ</TableHead><TableHead>العقد</TableHead><TableHead>الإجراءات</TableHead></TableRow></TableHeader>
+  return <><PageHeader eyebrow="المبيعات / BOOKINGS" title={t("pages.bookings")} description={t("ui.bookingsDescription")}/>
+    <div className="mb-4"><TableSearch path="/bookings" search={d.pagination.search} placeholder={t("ui.bookingSearchHint")}/></div>
+    <Card className="overflow-hidden"><Table><TableHeader><TableRow><TableHead>{t("ui.customerLabel")}</TableHead><TableHead>{t("ui.unitLabel")}</TableHead><TableHead>{t("ui.statusLabel")}</TableHead><TableHead>{t("ui.dateLabel")}</TableHead><TableHead>{t("ui.contractLabel")}</TableHead><TableHead>{t("ui.actionsLabel")}</TableHead></TableRow></TableHeader>
       <TableBody>{d.rows.map(b=><TableRow key={b.id}>
         <TableCell>{b.customerName}</TableCell><TableCell>{b.unitNumber}</TableCell>
         <TableCell><StatusBadge status={b.status}/></TableCell><TableCell>{businessDate(b.bookingDate)}</TableCell>
         <TableCell>{b.status==="CONFIRMED"&&!b.contractId&&d.session.role==="COMPANY_ADMIN"?
-          <ContractGeneration bookingId={b.id} totalAmount={b.unitPrice}/>:b.contractId?"عقد صادر":"—"}</TableCell>
+          <ContractGeneration bookingId={b.id} totalAmount={b.unitPrice}/>:b.contractId?t("ui.contractIssued"):"—"}</TableCell>
         <TableCell>{b.status==="CONFIRMED"&&d.session.role==="COMPANY_ADMIN"?<CancelBookingButton bookingId={b.id}/>:null}</TableCell>
       </TableRow>)}</TableBody></Table>
-      {!d.rows.length&&<p className="p-8 text-center text-sm text-slate-500">لا توجد حجوزات مطابقة.</p>}
+      {!d.rows.length&&<p className="p-8 text-center text-sm text-slate-500">{t("ui.noBookings")}</p>}
     </Card><PaginationNav path="/bookings" {...d.pagination}/>
   </>;
 }

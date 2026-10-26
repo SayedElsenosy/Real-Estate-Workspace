@@ -32,7 +32,7 @@ export function CompanyUserManager({employees,invitations}:{employees:Employee[]
    <Button onClick={()=>setShow(v=>!v)}>{show?t("close"):t("invite")}</Button>
   </div>
   {show&&<Card className="mb-6 p-5"><form onSubmit={invite} className="grid gap-3 md:grid-cols-[1fr_auto_auto]">
-    <Input type="email" required aria-label="البريد الإلكتروني للمدعو" placeholder={t("email")}
+    <Input type="email" required aria-label={t("email")} placeholder={t("email")}
       value={email} onChange={e=>setEmail(e.target.value)} maxLength={254}/>
     <select aria-label={t("role")} className="rounded-xl border bg-white p-2" value={role} onChange={e=>setRole(e.target.value)}>
       <option value="SALES">{roleT("SALES")}</option><option value="ACCOUNTANT">{roleT("ACCOUNTANT")}</option><option value="COMPANY_ADMIN">{roleT("COMPANY_ADMIN")}</option>
@@ -50,7 +50,7 @@ export function CompanyUserManager({employees,invitations}:{employees:Employee[]
     </TableRow>)}</TableBody></Table>
   </Card>
   <Card className="overflow-x-auto"><h2 className="p-5 text-lg font-bold">{t("recent")}</h2>
-   <Table><TableHeader><TableRow><TableHead>البريد الإلكتروني</TableHead><TableHead>الدور</TableHead><TableHead>الحالة</TableHead></TableRow></TableHeader>
+   <Table><TableHeader><TableRow><TableHead>{t("email")}</TableHead><TableHead>{t("role")}</TableHead><TableHead>{t("status")}</TableHead></TableRow></TableHeader>
     <TableBody>{invitations.map(i=><TableRow key={i.id}>
       <TableCell dir="ltr">{i.email}</TableCell><TableCell>{labels[i.role]??i.role}</TableCell>
       <TableCell>{i.usedAt?t("accepted"):i.revokedAt?t("revoked"):new Date(i.expiresAt).getTime()<Date.now()?t("expired"):t("pending")}</TableCell>

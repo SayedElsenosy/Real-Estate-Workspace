@@ -36,7 +36,7 @@ export default async function DashboardPage(){
        <div className="flex items-center gap-3"><div className="rounded-xl bg-[#e9f4f1] p-3 text-[#238c7d]"><CalendarCheck2 className="size-5"/></div><div><p className="text-sm font-semibold">{t("dashboard.bookings")}</p><p className="text-xs text-[#869a95]">{t("dashboard.bookingRegistered",{count:data.bookingsCount})}</p></div></div>
        <div className="flex items-center gap-3"><div className="rounded-xl bg-[#f2eee6] p-3 text-[#a4844e]"><Wallet className="size-5"/></div><div><p className="text-sm font-semibold">{t("dashboard.receipts")}</p><p className="text-xs text-[#869a95]">{t("dashboard.receiptRegistered",{count:data.receiptsCount})}</p></div></div>
       </div>
-      <p className="mt-8 rounded-xl bg-[#f1f8f6] p-4 text-xs leading-6 text-[#5a7d75]">الأرقام المعروضة من PostgreSQL مباشرة وليست إحصائيات وهمية.</p>
+      <p className="mt-8 rounded-xl bg-[#f1f8f6] p-4 text-xs leading-6 text-[#5a7d75]">{t("ui.summaryPostgres")}</p>
     </Card>
   </div>
  </>;

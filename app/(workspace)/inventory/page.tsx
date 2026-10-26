@@ -12,9 +12,9 @@ export default async function InventoryPage({searchParams}:{searchParams:Promise
   if(d.resource!=="units") throw new Error("Unexpected inventory query");
   return <>
     <PageHeader eyebrow="المخزون / INVENTORY" title={t("pages.inventory")}
-      description="تصفح الوحدات مع البحث وتقسيم النتائج من قاعدة البيانات."/>
+      description={t("ui.inventoryDescription")}/>
     {d.session.role==="COMPANY_ADMIN"&&<div className="mb-5">
-      <Link href="/inventory/manage" className="inline-flex rounded-xl bg-[#19776f] px-4 py-2 font-bold text-white">إضافة مشروع أو وحدة</Link>
+      <Link href="/inventory/manage" className="inline-flex rounded-xl bg-[#19776f] px-4 py-2 font-bold text-white">{t("ui.addProjectUnit")}</Link>
     </div>}
     <InventoryClient projects={d.projects} phases={d.phases} buildings={d.buildings} initialUnits={d.rows}
       customers={[]} selectedProjectId={d.selectedProjectId} selectedPhaseId={d.selectedPhaseId}

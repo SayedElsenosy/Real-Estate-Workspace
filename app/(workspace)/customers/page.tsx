@@ -7,8 +7,8 @@ export default async function CustomersPage({searchParams}:{searchParams:Promise
   const d=await loadWorkspace({...await searchParams,resource:"customers"});
   const {t}=await getServerI18n();
   if(d.resource!=="customers") throw new Error("Unexpected customers query");
-  return <><PageHeader eyebrow="العملاء / CRM" title={t("pages.customers")} description="سجل العملاء مع البحث المباشر داخل PostgreSQL."/>
-    <div className="mb-4"><TableSearch path="/customers" search={d.pagination.search} placeholder="اسم أو هاتف أو بريد العميل"/></div>
+  return <><PageHeader eyebrow="العملاء / CRM" title={t("pages.customers")} description={t("ui.customersDescription")}/>
+    <div className="mb-4"><TableSearch path="/customers" search={d.pagination.search} placeholder={t("ui.customerSearchHint")}/></div>
     <CustomersSearch customers={d.rows} total={d.pagination.total}/>
     <PaginationNav path="/customers" {...d.pagination}/>
   </>;

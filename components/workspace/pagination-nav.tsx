@@ -17,8 +17,8 @@ export async function PaginationNav({path,page,limit,total,search,params={}}:{
   };
   const linkClass="rounded-lg border border-[#dce6e4] bg-white px-4 py-2 text-sm font-semibold text-[#176f65] hover:bg-[#eef7f3]";
   const disabledClass="rounded-lg border border-[#e4ece9] px-4 py-2 text-sm text-[#a0b0ab]";
-  return <nav aria-label="تقسيم الصفحات" className="mt-5 flex flex-wrap items-center justify-between gap-3">
-    <span className="text-sm text-[#6c827b]">عرض {total===0?0:(page-1)*limit+1}–{Math.min(page*limit,total)} من {total} · صفحة {page} من {last}</span>
+  return <nav aria-label={t("ui.pageNav")} className="mt-5 flex flex-wrap items-center justify-between gap-3">
+    <span className="text-sm text-[#6c827b]">{t("ui.pageRange",{start:total===0?0:(page-1)*limit+1,end:Math.min(page*limit,total),total,page,last})}</span>
     <div className="flex items-center gap-2">
       {page>1?<Link className={linkClass} href={url(page-1)}>{t("common.previous")}</Link>:<span className={disabledClass}>{t("common.previous")}</span>}
       {page<last?<Link className={linkClass} href={url(page+1)}>{t("common.next")}</Link>:<span className={disabledClass}>{t("common.next")}</span>}
@@ -31,7 +31,7 @@ export async function TableSearch({path,search,placeholder="ابحث",params={}}
   const {t}=await getServerI18n();
   return <form method="get" action={path} role="search" className="flex flex-wrap gap-2">
     {Object.entries(params).filter(([,v])=>!!v).map(([key,v])=><input key={key} type="hidden" name={key} value={v}/>)}
-    <input type="search" name="search" aria-label="البحث في قاعدة البيانات" defaultValue={search}
+    <input type="search" name="search" aria-label={t("ui.searchDatabase")} defaultValue={search}
       placeholder={placeholder} maxLength={120} className="h-10 min-w-44 rounded-xl border border-[#dce6e4] bg-white px-3 text-sm"/>
     <button type="submit" className="rounded-xl bg-[#19776f] px-4 py-2 text-sm font-bold text-white">{t("common.search")}</button>
   </form>;

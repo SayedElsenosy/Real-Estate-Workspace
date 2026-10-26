@@ -75,9 +75,11 @@ BEGIN
   END IF;
   -- Remove fields containing private contact details or free-text financial references.
   before_row=before_row - 'phone_primary' - 'phone_secondary' - 'national_id' - 'email'
-    - 'customer_phone' - 'customer_name' - 'reference_number' - 'bounced_reason';
+    - 'customer_phone' - 'customer_name' - 'reference_number' - 'bounced_reason'
+    - 'file_url' - 'generated_docx_url' - 'svg_coordinates';
   after_row=after_row - 'phone_primary' - 'phone_secondary' - 'national_id' - 'email'
-    - 'customer_phone' - 'customer_name' - 'reference_number' - 'bounced_reason';
+    - 'customer_phone' - 'customer_name' - 'reference_number' - 'bounced_reason'
+    - 'file_url' - 'generated_docx_url' - 'svg_coordinates';
   -- Preserve the event even when only redacted fields changed.
   claimed_actor=NULLIF(current_setting('app.actor_id',true),'')::uuid;
   IF claimed_actor IS NOT NULL THEN

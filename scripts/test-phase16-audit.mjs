@@ -23,6 +23,23 @@ try{
   const [counts]=await tx`SELECT count(*)::int AS c FROM public.audit_logs WHERE tenant_id=${tenant}`;
   assert(counts.c>=2);
 
+
+  const [customer]=await tx`INSERT INTO public.customers(tenant_id,full_name,phone_primary,email,national_id)
+    VALUES(${tenant},'Private Customer','01112345678','hidden@example.invalid','12345678900000') RETURNING id`;
+  const [customerEvent]=await tx`SELECT new_values FROM public.audit_logs
+    WHERE entity_type='customers' AND entity_id=${customer.id} AND action='INSERT'`;
+  assert(customerEvent,"Customer writes must be audited");
+  for(const secret of ['phone_primary','phone_secondary','national_id','email']){
+    assert.equal(customerEvent.new_values[secret],undefined,"Audit must redact "+secret);
+  }
+  const [outside]=await tx`SELECT tenant_id FROM public.tenants WHERE tenant_id<>${tenant} ORDER BY created_at LIMIT 1`;
+  if(outside){
+    await tx`SELECT set_config('app.tenant_id',${outside.tenant_id},true)`;
+    const [cross]=await tx`SELECT count(*)::int AS n FROM public.audit_logs WHERE tenant_id=${tenant}`;
+    assert.equal(cross.n,0,"RLS must not expose another tenant's audit");
+    await tx`SELECT set_config('app.tenant_id',${tenant},true)`;
+  }
+
   // Runtime role cannot directly forge append-only audit rows.
   try{
    await tx.savepoint(async sp=>sp`UPDATE public.audit_logs SET action='DELETE' WHERE entity_id=${project.id}`);

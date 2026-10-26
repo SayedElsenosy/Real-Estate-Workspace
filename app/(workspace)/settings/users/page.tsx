@@ -12,7 +12,7 @@ export default async function CompanyUsersPage(){
  const {t}=await getServerI18n();
  return <>
   <PageHeader eyebrow="الإعدادات / STAFF" title={t("pages.settingsUsers")}
-   description="عرض أعضاء الشركة وإرسال دعوات إلكترونية لإنشاء الحسابات."/>
+   description={t("ui.usersDescription")}/>
   <CompanyUserManager employees={data.employees}
    invitations={data.pending.map(i=>({...i,expiresAt:i.expiresAt.toISOString(),
     usedAt:i.usedAt?.toISOString()??null,revokedAt:i.revokedAt?.toISOString()??null}))}/>

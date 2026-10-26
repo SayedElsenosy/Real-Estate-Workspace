@@ -33,6 +33,7 @@ jobs:
       - run: npm run test:rls
       - run: npm run test:inventory-rls
       - run: npm run test:booking-concurrency
+      - run: node --import tsx scripts/test-business-date.mjs
       - run: npm run test:installments-math
       - run: npm run test:contracts-transaction
       - run: npm run test:payments-concurrency

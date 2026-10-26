@@ -36,7 +36,7 @@ export async function authorizeCredentials(credentials: Partial<Record<string, u
   externalAuthId:user.externalAuthId!,companyName,authVersion:user.authVersion };
 }
 export async function currentAuthUser(id:string) {
- const [row]=await getAuthDatabase().select({user:authUsers,companyName:tenants.name})
+ const [row]=await getAuthDatabase().select({user:authUsers,companyName:tenants.name,tenantActive:tenants.isActive})
   .from(authUsers).innerJoin(tenants,eq(authUsers.tenantId,tenants.tenantId))
   .where(eq(authUsers.id,id)).limit(1);
  return row;

@@ -1,4 +1,5 @@
 "use client";
+import {useTranslations} from "next-intl";
 import {useEffect,useState} from "react";
 import {useRouter} from "next/navigation";
 import {CalendarCheck2,LoaderCircle,UserRound,Phone,UserPlus} from "lucide-react";
@@ -17,6 +18,7 @@ export function BookingDialog({unit,onClose,onSuccess,customers}:{unit:UnitForBo
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const router=useRouter();
+ const t=useTranslations("booking");
  useEffect(()=>{
   if(mode!=="existing" || !unit) return;
   const controller=new AbortController();
@@ -40,19 +42,19 @@ export function BookingDialog({unit,onClose,onSuccess,customers}:{unit:UnitForBo
     body:JSON.stringify({unit_id:unit.id,...(mode==="existing"?{customer_id:customerId}:{new_customer:{full_name:name.trim(),phone_primary:phone.trim()}})}),
    });
    const result=await response.json();
-   if(!response.ok){setError(result.error||"تعذر إتمام الحجز");return;}
-   if(result.booking?.status!=="CONFIRMED"){setError("نتيجة الحجز غير متوقعة");return;}
+   if(!response.ok){setError(result.error||t("failure"));return;}
+   if(result.booking?.status!=="CONFIRMED"){setError(t("unexpected"));return;}
    onSuccess(unit.id);setName("");setPhone("");setCustomerId("");onClose();router.refresh();
-  }catch{setError("تعذر الاتصال بخدمة الحجز");}finally{setBusy(false);}
+  }catch{setError(t("network"));}finally{setBusy(false);}
  }
- return <Dialog open={unit!==null} onOpenChange={open=>{if(!open)close();}}><DialogContent><DialogHeader><DialogTitle>حجز الوحدة {unit?.unitNumber}</DialogTitle><DialogDescription>اربط الحجز بسجل العميل الحالي أو أنشئ ملف عميل جديد.</DialogDescription></DialogHeader>
- <p className="mb-4 rounded-xl bg-[#f5faf8] p-3 text-sm">السعر: <strong dir="ltr">{unit?money(unit.price):""}</strong></p>
- <div className="mb-4 flex gap-2"><Button type="button" size="sm" variant={mode==="existing"?"default":"outline"} onClick={()=>setMode("existing")}><UserRound className="size-4"/> عميل موجود</Button><Button type="button" size="sm" variant={mode==="new"?"default":"outline"} onClick={()=>setMode("new")}><UserPlus className="size-4"/> إضافة عميل جديد</Button></div>
+ return <Dialog open={unit!==null} onOpenChange={open=>{if(!open)close();}}><DialogContent><DialogHeader><DialogTitle>{t("title",{unit:unit?.unitNumber??""})}</DialogTitle><DialogDescription>{t("description")}</DialogDescription></DialogHeader>
+ <p className="mb-4 rounded-xl bg-[#f5faf8] p-3 text-sm">{t("price")}: <strong dir="ltr">{unit?money(unit.price):""}</strong></p>
+ <div className="mb-4 flex gap-2"><Button type="button" size="sm" variant={mode==="existing"?"default":"outline"} onClick={()=>setMode("existing")}><UserRound className="size-4"/> {t("existing")}</Button><Button type="button" size="sm" variant={mode==="new"?"default":"outline"} onClick={()=>setMode("new")}><UserPlus className="size-4"/> {t("new")}</Button></div>
  <form onSubmit={submit} className="space-y-4">
- {mode==="existing"?<div className="space-y-2"><label className="block text-sm font-semibold">بحث عن العميل<Input aria-label="بحث عن عميل للحجز" value={query} onChange={e=>setQuery(e.target.value)} placeholder="اسم أو رقم هاتف"/></label>
- <label className="block text-sm font-semibold">اختيار العميل<select aria-label="اختيار العميل" required value={customerId} onChange={e=>setCustomerId(e.target.value)} className="mt-2 h-11 w-full rounded-xl border bg-white px-3"><option value="">اختر العميل</option>{found.map(c=><option key={c.id} value={c.id}>{c.fullName} — {c.phonePrimary}</option>)}</select></label></div>
- :<><label className="block text-sm font-semibold">اسم العميل<Input aria-label="اسم العميل" required minLength={2} maxLength={200} value={name} onChange={e=>setName(e.target.value)} placeholder="الاسم بالكامل"/></label><label className="block text-sm font-semibold">رقم الهاتف<Input aria-label="رقم الهاتف" dir="ltr" required type="tel" minLength={6} maxLength={30} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="010xxxxxxxx"/></label></>}
+ {mode==="existing"?<div className="space-y-2"><label className="block text-sm font-semibold">{t("findCustomer")}<Input aria-label={t("searchCustomer")} value={query} onChange={e=>setQuery(e.target.value)} placeholder={t("nameOrPhone")}/></label>
+ <label className="block text-sm font-semibold">{t("chooseCustomer")}<select aria-label={t("chooseCustomer")} required value={customerId} onChange={e=>setCustomerId(e.target.value)} className="mt-2 h-11 w-full rounded-xl border bg-white px-3"><option value="">{t("selectCustomer")}</option>{found.map(c=><option key={c.id} value={c.id}>{c.fullName} — {c.phonePrimary}</option>)}</select></label></div>
+ :<><label className="block text-sm font-semibold">{t("customerName")}<Input aria-label={t("customerName")} required minLength={2} maxLength={200} value={name} onChange={e=>setName(e.target.value)} placeholder={t("fullName")}/></label><label className="block text-sm font-semibold">{t("phone")}<Input aria-label={t("phone")} dir="ltr" required type="tel" minLength={6} maxLength={30} value={phone} onChange={e=>setPhone(e.target.value)} placeholder="010xxxxxxxx"/></label></>}
  {error&&<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
- <div className="flex gap-2"><Button disabled={busy||mode==="existing"&&!customerId} type="submit" className="flex-1">{busy?<LoaderCircle className="size-4 animate-spin"/>:<CalendarCheck2 className="size-4"/>} تأكيد الحجز</Button><Button type="button" variant="outline" onClick={close} disabled={busy}>إلغاء</Button></div>
+ <div className="flex gap-2"><Button disabled={busy||mode==="existing"&&!customerId} type="submit" className="flex-1">{busy?<LoaderCircle className="size-4 animate-spin"/>:<CalendarCheck2 className="size-4"/>} {t("confirm")}</Button><Button type="button" variant="outline" onClick={close} disabled={busy}>{t("cancel")}</Button></div>
  </form></DialogContent></Dialog>;
 }

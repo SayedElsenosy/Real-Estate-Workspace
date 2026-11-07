@@ -4,6 +4,7 @@ import { createCipheriv, createDecipheriv, randomBytes, randomInt, timingSafeEqu
 import { readFile, writeFile, mkdir, unlink, chmod } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { homedir } from "node:os";
+import { spawn } from "node:child_process";
 
 const ROOT = resolve(process.cwd());
 const app = express();
@@ -100,6 +101,26 @@ function decrypt(txt) {
  dec.setAuthTag(buf.subarray(12,28));
  return JSON.parse(Buffer.concat([dec.update(buf.subarray(28)),dec.final()]).toString("utf8"));
 }
+
+async function setActionSecret(name,value) {
+ if(!/^[A-Z0-9_]+$/.test(name)) throw Error("INVALID_SECRET_NAME");
+ return new Promise((resolve,reject)=>{
+  const args=["secret","set",name,"--repo","SayedElsenosy/Real-Estate-Workspace","--app","actions"];
+  const child=spawn("gh",args,{env:{...process.env,GH_PROMPT_DISABLED:"1"},stdio:["pipe","ignore","pipe"]});
+  let rejected=false;
+  child.on("error",()=>{if(!rejected){rejected=true;reject(Error("GH_CLI_UNAVAILABLE"));}});
+  child.on("close",code=>{
+   if(rejected)return;
+   rejected=true;
+   if(code===0)resolve();else reject(Error("GITHUB_SECRET_WRITE_FORBIDDEN"));
+  });
+  // GitHub CLI encrypts repository secrets locally before sending them over HTTPS.
+  // Do not pass secret values as command-line args or write them to logs.
+  child.stdin.on("error",()=>{});
+  child.stdin.end(value+"\n");
+ });
+}
+
 async function savedState() {
  try {return decrypt(await readFile(sessionFile,"utf8"));}catch(e){
   if(e.code==="ENOENT")return null;
@@ -180,7 +201,20 @@ async function operate(body) {
   await writeFile(sessionFile,encrypt(state),{mode:0o600});
   await chmod(sessionFile,0o600);
   currentVerified=true;
-  return {ok:true,saved:true,message:"تم تأكيد تسجيل الدخول وحفظ جلسة Engaz بشكل مشفر في Codespace."};
+  let synced=false;
+  try {
+   const encrypted=(await readFile(sessionFile,"utf8")).trim();
+   if(Buffer.byteLength(encrypted,"utf8")>47000)throw Error("SECRET_TOO_BIG");
+   await setActionSecret("ELAF_SESSION_KEY",key.toString("hex"));
+   await setActionSecret("ELAF_ENGAZ_STATE",encrypted);
+   synced=true;
+  }catch {
+   // A missing GitHub permission must not result in false claims of cloud sync.
+   console.error("GitHub Actions encrypted session sync requires permission");
+  }
+  return {ok:true,saved:true,synced,message:synced
+   ?"تم حفظ جلسة Engaz مشفّرة، ونقل بياناتها المشفّرة إلى أسرار GitHub Actions للمهام المجدولة."
+   :"تم حفظ الجلسة مشفّرة داخل Codespace، لكن GitHub رفض نقلها لأسرار Actions. الجدولة غير مفعّلة للجلسة بعد."};
  }
  if(action==="status"){
   const exists=!!(await savedState());

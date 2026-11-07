@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
+      ELAF_ENGAZ_STATE: ${{ secrets.ELAF_ENGAZ_STATE }}
+      ELAF_SESSION_KEY: ${{ secrets.ELAF_SESSION_KEY }}
       ELAF_SESSIONS_DATABASE_URL: ${{ secrets.ELAF_SESSIONS_DATABASE_URL }}
       ELAF_SESSION_ENCRYPTION_KEY: ${{ secrets.ELAF_SESSION_ENCRYPTION_KEY }}
     steps:
@@ -32,7 +34,7 @@ jobs:
           node-version: '22'
 
       - name: Install audit dependencies only when authorized session is configured
-        if: ${{ env.ELAF_SESSIONS_DATABASE_URL != '' && env.ELAF_SESSION_ENCRYPTION_KEY != '' }}
+        if: ${{ (env.ELAF_ENGAZ_STATE != '' && env.ELAF_SESSION_KEY != '') || (env.ELAF_SESSIONS_DATABASE_URL != '' && env.ELAF_SESSION_ENCRYPTION_KEY != '') }}
         working-directory: sales-automation-cloud
         run: |
           npm install --omit=dev --no-audit --no-fund

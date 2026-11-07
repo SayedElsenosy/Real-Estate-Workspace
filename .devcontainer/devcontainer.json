@@ -1,0 +1,24 @@
+{
+  "name": "ELAF Sales Hub - Secure Cloud Login",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-22-bookworm",
+  "forwardPorts": [
+    3000
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "ELAF Engaz Cloud Login",
+      "onAutoForward": "openBrowser",
+      "visibility": "private"
+    }
+  },
+  "postCreateCommand": "cd sales-automation-cloud && npm install --no-audit --no-fund && npx playwright install --with-deps chromium",
+  "postStartCommand": "bash sales-automation-cloud/start-codespaces.sh",
+  "postAttachCommand": "bash -lc 'echo ELAF Login PIN:; cat ~/.local/share/elaf-sales-hub/one-time-code.txt 2>/dev/null || echo First start has not completed yet'",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}

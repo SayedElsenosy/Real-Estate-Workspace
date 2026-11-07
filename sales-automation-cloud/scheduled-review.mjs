@@ -68,7 +68,9 @@ async function main() {
     const url = new URL(page.url());
     const loginForm = await page.locator('input[type="password"]').count();
     const loginPath = /\/(?:login|signin|auth|forgot|reset)(?:\/|$)/i.test(url.pathname);
-    if (url.origin === "https://elaf.engazcrm.net" && !loginPath && loginForm === 0) {
+    const body = await page.locator("body").textContent({ timeout: 5000 }).catch(() => "");
+    const hasDashboard = /Leads/i.test(body) && /Dashboard/i.test(body);
+    if (url.origin === "https://elaf.engazcrm.net" && !loginPath && loginForm === 0 && hasDashboard) {
       await status("SESSION_CANDIDATE — dashboard appeared; requires authorized review before reading clients");
     } else {
       await status("LOGIN_REQUIRED — session expired or site requested new authentication");

@@ -8,24 +8,30 @@ const status = (value) => {
 };
 
 async function main() {
+  const directEncrypted = (process.env.ELAF_ENGAZ_STATE || "").trim();
+  const directKey = process.env.ELAF_SESSION_KEY || "";
   const dbUrl = process.env.ELAF_SESSIONS_DATABASE_URL;
-  const hexKey = process.env.ELAF_SESSION_ENCRYPTION_KEY;
-  if (!dbUrl || !/^[0-9a-f]{64}$/i.test(hexKey ?? "")) {
-    await status("NEEDS_SETUP — secure login session is not configured");
+  const fallbackKey = process.env.ELAF_SESSION_ENCRYPTION_KEY;
+  let encrypted, hexKey;
+  if (directEncrypted && /^[0-9a-f]{64}$/i.test(directKey)) {
+    encrypted = directEncrypted;
+    hexKey = directKey;
+  } else if (dbUrl && /^[0-9a-f]{64}$/i.test(fallbackKey || "")) {
+    hexKey = fallbackKey;
+    const { default: pg } = await import("pg");
+    const pool = new pg.Pool({ connectionString: dbUrl, ssl: { rejectUnauthorized: true }, max: 1 });
+    try {
+      const r = await pool.query(
+        "SELECT encrypted_state FROM engaz_browser_sessions WHERE id = $1 LIMIT 1",
+        ["primary"]
+      );
+      encrypted = r.rows[0]?.encrypted_state;
+    } finally {
+      await pool.end();
+    }
+  } else {
+    await status("NEEDS_SETUP — no cloud login session has been transferred to Actions");
     return;
-  }
-
-  const { default: pg } = await import("pg");
-  const pool = new pg.Pool({ connectionString: dbUrl, ssl: { rejectUnauthorized: true }, max: 1 });
-  let encrypted;
-  try {
-    const r = await pool.query(
-      "SELECT encrypted_state FROM engaz_browser_sessions WHERE id = $1 LIMIT 1",
-      ["primary"]
-    );
-    encrypted = r.rows[0]?.encrypted_state;
-  } finally {
-    await pool.end();
   }
   if (!encrypted) {
     await status("LOGIN_REQUIRED — no saved Engaz session; no automation executed");

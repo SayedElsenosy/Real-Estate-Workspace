@@ -64,8 +64,9 @@ function sameOrigin(req) {
  const origin=req.get("origin"); if(!origin)return false;
  try{
   const target=new URL(origin);
-  const host=req.get("x-forwarded-host")||req.get("host");
-  return target.protocol==="https:"&&target.host===host;
+  const hosts=[req.get("x-forwarded-host"),req.get("host")].filter(Boolean);
+  if(process.env.CODESPACE_NAME)hosts.push(process.env.CODESPACE_NAME+"-3000.app.github.dev");
+  return target.protocol==="https:"&&hosts.includes(target.host);
  }catch{return false;}
 }
 app.use((req,res,next)=>{

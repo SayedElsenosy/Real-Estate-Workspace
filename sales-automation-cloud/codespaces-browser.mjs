@@ -102,6 +102,17 @@ function decrypt(txt) {
  return JSON.parse(Buffer.concat([dec.update(buf.subarray(28)),dec.final()]).toString("utf8"));
 }
 
+async function requestImmediateVerification() {
+ return new Promise((resolve,reject)=>{
+  const child=spawn("gh",[
+   "workflow","run","elaf-sales-session-check.yml",
+   "--repo","SayedElsenosy/Real-Estate-Workspace","--ref","main"
+  ],{env:{...process.env,GH_PROMPT_DISABLED:"1"},stdio:["ignore","ignore","ignore"]});
+  child.on("error",()=>reject(Error("GH_WORKFLOW_REQUEST_FAILED")));
+  child.on("close",code=>code===0?resolve():reject(Error("GH_WORKFLOW_REQUEST_FAILED")));
+ });
+}
+
 async function setActionSecret(name,value) {
  if(!/^[A-Z0-9_]+$/.test(name)) throw Error("INVALID_SECRET_NAME");
  return new Promise((resolve,reject)=>{
@@ -201,18 +212,19 @@ async function operate(body) {
   await writeFile(sessionFile,encrypt(state),{mode:0o600});
   await chmod(sessionFile,0o600);
   currentVerified=true;
-  let synced=false;
+  let synced=false,checkRequested=false;
   try {
    const encrypted=(await readFile(sessionFile,"utf8")).trim();
    if(Buffer.byteLength(encrypted,"utf8")>47000)throw Error("SECRET_TOO_BIG");
    await setActionSecret("ELAF_SESSION_KEY",key.toString("hex"));
    await setActionSecret("ELAF_ENGAZ_STATE",encrypted);
    synced=true;
+   try {await requestImmediateVerification();checkRequested=true;}catch {}
   }catch {
    // A missing GitHub permission must not result in false claims of cloud sync.
    console.error("GitHub Actions encrypted session sync requires permission");
   }
-  return {ok:true,saved:true,synced,message:synced
+  return {ok:true,saved:true,synced,checkRequested,message:synced
    ?"تم حفظ جلسة Engaz مشفّرة، ونقل بياناتها المشفّرة إلى أسرار GitHub Actions للمهام المجدولة."
    :"تم حفظ الجلسة مشفّرة داخل Codespace، لكن GitHub رفض نقلها لأسرار Actions. الجدولة غير مفعّلة للجلسة بعد."};
  }

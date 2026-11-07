@@ -17,7 +17,7 @@ const dir=join(homedir(),".local","share","elaf-sales-hub");
 const keyFile=join(dir,"session.key");
 const sessionFile=join(dir,"engaz.state.enc");
 const pinFile=join(dir,"one-time-code.txt");
-let key, browser, context, page, busy=Promise.resolve();
+let key, authKey, browser, context, page, busy=Promise.resolve();
 let pairingCode="", pairingUntil=0, attempts=0, currentVerified=false;
 let lastScreenshot=0, screenshotCache=null;
 
@@ -38,16 +38,22 @@ async function setup() {
   await writeFile(keyFile,key,{mode:0o600,flag:"wx"});
  }
  if(key.length!==32) throw Error("SECURITY_KEY_CORRUPT");
+ const authFile=join(dir,"auth.key");
+ try {authKey=await readFile(authFile);}catch {
+  authKey=randomBytes(32);
+  await writeFile(authFile,authKey,{mode:0o600,flag:"wx"});
+ }
+ if(authKey.length!==32)throw Error("AUTH_KEY_CORRUPT");
  pairingCode=String(randomInt(10000000,100000000));
  pairingUntil=Date.now()+30*60*1000;
  await writeFile(pinFile,pairingCode+"\n",{mode:0o600});
  console.log("ELAF Browser Login: http://localhost:"+PORT);
  console.log("Your one-time PIN is in the Codespace terminal: cat ~/.local/share/elaf-sales-hub/one-time-code.txt");
 }
-const authCookie = () => "hub_token="+key.toString("hex")+"; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800";
+const authCookie = () => "hub_token="+authKey.toString("hex")+"; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=604800";
 function isAuthed(req) {
  const raw=(req.headers.cookie||"").split(";").map(v=>v.trim()).find(v=>v.startsWith("hub_token="));
- return raw && safeEqual(raw.slice(10),key.toString("hex"));
+ return raw && safeEqual(raw.slice(10),authKey.toString("hex"));
 }
 function guarded(req,res,next) {
  if(!isAuthed(req))return json(res,401,{ok:false,code:"PIN_REQUIRED",message:"يجب إدخال كود الحماية أولًا"});

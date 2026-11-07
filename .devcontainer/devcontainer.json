@@ -7,13 +7,13 @@
   "portsAttributes": {
     "3000": {
       "label": "ELAF Engaz Cloud Login",
-      "onAutoForward": "openBrowser",
+      "onAutoForward": "openPreview",
       "visibility": "private"
     }
   },
   "postCreateCommand": "cd sales-automation-cloud && npm install --no-audit --no-fund && npx playwright install --with-deps chromium",
   "postStartCommand": "bash sales-automation-cloud/start-codespaces.sh",
-  "postAttachCommand": "bash -lc 'echo ELAF Login PIN:; cat ~/.local/share/elaf-sales-hub/one-time-code.txt 2>/dev/null || echo First start has not completed yet'",
+  "postAttachCommand": "bash -lc 'echo ELAF login is available on private port 3000. Use Ports > Preview in Editor. Get the one-time PIN from the local protected file only when needed.'",
   "customizations": {
     "vscode": {
       "settings": {

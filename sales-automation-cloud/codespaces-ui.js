@@ -31,7 +31,7 @@ async function operate(action,payload={}){
  try{
   const d=await post("/api/browser",{action,...payload});
   present(d);
-  if(d.message)status(d.message,d.saved?"good":"");
+  if(d.message)status(d.message,action==="save"?(d.synced?"good":"bad"):(d.saved?"good":""));
   else if(action==="start"||action==="view"||action==="fresh")status("المتصفح السحابي جاهز. اضغط داخل الصورة لتحديد مكان الكتابة.","good");
   return d;
  }catch(e){status(e.message,"bad");return null;}
